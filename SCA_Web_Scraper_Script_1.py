@@ -36,8 +36,11 @@ Last = 106716
 First = 101474 
 First_minus_one = 101474
 
-## Test Loop For New Attributes
 
+
+## PETRI DISH SECTION___________________________________________________________
+
+'''Test code before adding to scaper'''
 # Get Titles From Range of Articles
 def loop_over_artilces_test(Url, Start):  
     
@@ -53,16 +56,16 @@ def loop_over_artilces_test(Url, Start):
         bsObj = BeautifulSoup(html.read(), 'lxml')
     
         # Scrape Data Points
-        data_points = scraper_1.get_complaint_data_points(bsObj)
-        print(data_points)
+        data = scraper_1.get_plaintiff_firm(bsObj)
+        print(data)
     return None
 
-#loop_over_artilces_test(Url, First_minus_one)
+loop_over_artilces_test(Url, First_minus_one)
 
 
 
 
-# SCRAPER
+## SCRAPER_______________________________________________________________________
 
 def loop_over_artilces(Url, Start, Write_to_excel):  
 
@@ -95,9 +98,11 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     Ref_date_filed_list = []
     Ref_class_period_start_list = []
     Ref_class_period_end_list = []
+    # Law Firms
+    Plaintiff_firm_list = []
+    Defendant_firm_list = []
 
-
-    # Loop over article & Increase Value by 1 on each iteration
+    # START LOOP OVER ARTICLES - Increase Value by 1 on each iteration
     for x in range(0,25):
         Start +=1
     
@@ -208,6 +213,13 @@ def loop_over_artilces(Url, Start, Write_to_excel):
         Ref_class_period_end = scraper_1.get_referenced_complaint_data_points(bsObj, 'Class Period End')
         Ref_class_period_end_list.append(Ref_class_period_end)
 
+        # LAW FIRM SECTION----------------------------------------------------
+
+        # Plaintiff Firm
+        Plaintiff_firm = scraper_1.get_plaintiff_firm(bsObj)
+        Plaintiff_firm_list.append(Plaintiff_firm)
+        # Defense Counsel
+        # TBD
 
     # Combined Metrics
     '''Add duration from filing - close date'''
@@ -240,6 +252,7 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     df['Ref_Date_Filed'] = Ref_date_filed_list
     df['Ref_Class_Period_Start'] = Ref_class_period_start_list
     df['Ref_Class_Period_End'] = Ref_class_period_end_list
+    df['Plaintiff_Firm'] = Plaintiff_firm_list
 
 
     # Write to Excel

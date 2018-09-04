@@ -71,7 +71,6 @@ def get_close_date(Obj):
         date_value = search.group()
         return date_value
 
-
 def get_case_summary(Obj):
     # Limit to the summary section
     Section_summary = Obj.find('section', {'id':'summary'})
@@ -118,14 +117,6 @@ def get_company_data_points(Obj, data_point):
             return None
 
 # FIRST IDENTIFIED COMPLAINT
-
-def get_plaintiff(Obj):
-    First_identified_complaint = Obj.find('section', {'id':'fic'})
-    Page_header =Section_summary = Obj.find('section', {'id':'company'})
-    Description = Section_summary.findAll('div', {'class':'span4'}) 
-    First_identified_complaint.find('div', {'class':'page-header'})
-    Plaintiff = Page_header.find('h4').get_text().split('v.')[0]
-    return Plaintiff
 
 def get_first_complaint_data_points(Obj,data_point):
     '''Data point options:
@@ -195,6 +186,19 @@ def get_referenced_complaint_data_points(Obj,data_point):
                 return data.get_text().split(':')[1]
         else:
             return None
+
+
+# DEFENSE COUNSEL AND PLAINTIFF FIRM
+
+def get_plaintiff_firm(Obj):
+    First_identified_complaint = Obj.find('section', {'id':'fic'})
+    Plaintiff_firm = First_identified_complaint.find('ol', {'class':'styled'}).get_text()
+    return Plaintiff_firm
+
+# Defense Counsel (TBD)
+
+
+
 
 
 
