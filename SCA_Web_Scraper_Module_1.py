@@ -200,5 +200,17 @@ def get_plaintiff_firm(Obj):
 
 
 
+# DOCUMENTS AVAILABLE ON WEB PAGE
+
+def get_titles_first_complaint_docs(Obj):
+    First_identified_complaint_section = Obj.find('section', {'id':'fic'})
+    
+    Docs = First_identified_complaint_section.find('table', {'class':'table table-bordered table-striped table-hover'}).get_text()
+    return Docs
+
+
+
+
+
 
 

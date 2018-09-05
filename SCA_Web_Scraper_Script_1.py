@@ -34,7 +34,7 @@ Specific Cases =    filings-case.html?id=106716
 Url = 'http://securities.stanford.edu/filings-case.html?id='
 Last = 106716
 First = 101474 
-First_minus_one = 101474
+First_minus_one = 101473
 
 
 
@@ -56,7 +56,7 @@ def loop_over_artilces_test(Url, Start):
         bsObj = BeautifulSoup(html.read(), 'lxml')
     
         # Scrape Data Points
-        data = scraper_1.get_plaintiff_firm(bsObj)
+        data = scraper_1.get_titles_first_complaint_docs(bsObj)
         print(data)
     return None
 
@@ -264,7 +264,7 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     return None
 
 
-loop_over_artilces(Url, First_minus_one, Write_to_excel = True)
+#loop_over_artilces(Url, First_minus_one, Write_to_excel = True)
 
 
 
