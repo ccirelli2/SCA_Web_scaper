@@ -34,7 +34,7 @@ Specific Cases =    filings-case.html?id=106716
 Url = 'http://securities.stanford.edu/filings-case.html?id='
 Last = 106716
 First = 101474 
-First_minus_one = 101473
+First_minus_one= 101473
 
 
 
@@ -56,11 +56,11 @@ def loop_over_artilces_test(Url, Start):
         bsObj = BeautifulSoup(html.read(), 'lxml')
     
         # Scrape Data Points
-        data = scraper_1.get_titles_first_complaint_docs(bsObj)
+        data = scraper_1.get_titles_referenced_complaint_docs(bsObj)
         print(data)
     return None
 
-loop_over_artilces_test(Url, First_minus_one)
+#loop_over_artilces_test(Url, First_minus_one)
 
 
 
@@ -103,9 +103,21 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     Defendant_firm_list = []
 
     # START LOOP OVER ARTICLES - Increase Value by 1 on each iteration
-    for x in range(0,25):
+    for x in range(0,10):
         Start +=1
-    
+        
+        '''
+        # Progress Timer
+        if Start == 100:
+            print('20% Complete')
+        elif Start == 200:
+            print('40% Complete')
+        elif Start == 300:
+            print('60% Complete')
+        elif Start == 400:
+            print('80% Complete')
+        '''
+
         # Create Beautiful Soup Object per article
         html = urlopen(Url + str(Start))
         bsObj = BeautifulSoup(html.read(), 'lxml')
@@ -264,7 +276,7 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     return None
 
 
-#loop_over_artilces(Url, First_minus_one, Write_to_excel = True)
+loop_over_artilces(Url, First_minus_one, Write_to_excel = True)
 
 
 

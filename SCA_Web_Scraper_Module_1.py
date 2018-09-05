@@ -192,8 +192,11 @@ def get_referenced_complaint_data_points(Obj,data_point):
 
 def get_plaintiff_firm(Obj):
     First_identified_complaint = Obj.find('section', {'id':'fic'})
-    Plaintiff_firm = First_identified_complaint.find('ol', {'class':'styled'}).get_text()
-    return Plaintiff_firm
+    if First_identified_complaint == None:
+        return None
+    else:
+        Plaintiff_firm = First_identified_complaint.find('ol', {'class':'styled'}).get_text()
+        return Plaintiff_firm
 
 # Defense Counsel (TBD)
 
@@ -206,9 +209,17 @@ def get_titles_first_complaint_docs(Obj):
     First_identified_complaint_section = Obj.find('section', {'id':'fic'})
     
     Docs = First_identified_complaint_section.find('table', {'class':'table table-bordered table-striped table-hover'}).get_text()
-    return Docs
+    if 'No\nDocument Title' in Docs:
+        return 'No Documents Found'
+    else:
+        return Docs
 
-
+def get_titles_referenced_complaint_docs(Obj):
+    Referenced_complaint_section = Obj.find('section', {'id':'ref'})
+    Table = Referenced_complaint_section.find('table', {'class':'table table-bordered table-striped table-hover'})
+    Entries = Table.findAll('tr', {'class':'table-link'})
+    print(len(Entries))
+    # Table for later
 
 
 
