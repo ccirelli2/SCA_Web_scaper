@@ -27,7 +27,7 @@ def write_to_excel(dataframe, filename):
     dataframe.to_excel(writer, 'Data')
     writer.save()
 
-# CASE SUMMARY
+# CASE SUMMARY----------------------------------------------------
 
 def get_title(Url):
     # Create Bs4
@@ -78,7 +78,7 @@ def get_case_summary(Obj):
     return Description
 
 
-# COMPANY INFORMATION
+# COMPANY INFORMATION-------------------------------------------------------
 
 
 def get_company_data_points(Obj, data_point):
@@ -116,7 +116,7 @@ def get_company_data_points(Obj, data_point):
         else:
             return None
 
-# FIRST IDENTIFIED COMPLAINT
+# FIRST IDENTIFIED COMPLAINT------------------------------------------------
 
 def get_first_complaint_data_points(Obj,data_point):
     '''Data point options:
@@ -188,7 +188,7 @@ def get_referenced_complaint_data_points(Obj,data_point):
             return None
 
 
-# DEFENSE COUNSEL AND PLAINTIFF FIRM
+# DEFENSE COUNSEL AND PLAINTIFF FIRM-------------------------------------------
 
 def get_plaintiff_firm(Obj):
     Ref_complaint = Obj.find('section', {'id':'ref'})
@@ -207,7 +207,7 @@ def get_plaintiff_firm(Obj):
 
 
 
-# DOCUMENTS AVAILABLE ON WEB PAGE
+# DOCUMENTS AVAILABLE ON WEB PAGE---------------------------------------------
 
 def get_titles_first_complaint_docs(Obj):
     First_identified_complaint_section = Obj.find('section', {'id':'fic'})
@@ -228,7 +228,7 @@ def get_titles_referenced_complaint_docs(Obj):
 
 
 
-# MINE CASE SUMMARY
+# MINE CASE SUMMARY-----------------------------------------------------------
 '''Values to min
 1.) Statutes referenced:  Ex 1934 Act, ERISA, etc. 
 2.) Violations
@@ -237,7 +237,6 @@ def get_titles_referenced_complaint_docs(Obj):
 5.) Earnings
 6.) Stock drop %. 
 '''
-
 
 def concat_text_from_case_summary(new_file_name):
 
@@ -262,5 +261,54 @@ def concat_text_from_case_summary(new_file_name):
     New_File.close()
     print('Case study text concatenated\n')
     return None
+
+
+def clean_andTokenize_text(Text_file):
+    '''
+    Input      = Text File
+    Operations = Tokenize, lowercase, strip punctuation/stopwords/nonAlpha
+    Return     = Object = Set; Set = cleaned, isalpha only tokens
+    '''
+    # Strip Lists
+    Punct_list = set((punct for punct in string.punctuation))
+    Stopwords = nltk.corpus.stopwords.words('english')
+    Set_names = get_set_human_names()
+    # Tokenize Text
+    Text_tokenized = nltk.word_tokenize(Text_file)
+    # Convert tokens to lowercase
+    Text_lowercase = (token.lower() for token in Text_tokenized)
+    # Strip Punctuation
+    Text_tok_stripPunct = filter(lambda x: (x not in Punct_list), Text_lowercase)
+    # Strip Stopwords
+    Text_strip_stopWords = filter(lambda x: (x not in Stopwords), Text_tok_stripPunct)
+    # Strip Non-Alpha
+    Text_strip_nonAlpha = filter(lambda x: x.isalpha(), Text_strip_stopWords)
+    # Strip 2 letter words
+    Text_strip_2letter_words = filter(lambda x: len(x)>3, Text_strip_nonAlpha)
+    # Strip names
+    Text_strip_names_2 = filter(lambda x: x not in Set_names, Text_strip_2letter_words)
+    # Take Stem of Each Token 
+    Text_stem = [stemmer.stem(x) for x in Text_strip_names_2]
+    # Note that we are not returning a set here as with Ngrams we are looking for patters which could be altered materially by using
+    # a set function, which is better used outside the function if need be. 
+    return Text_stem
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

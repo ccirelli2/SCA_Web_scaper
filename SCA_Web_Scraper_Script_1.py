@@ -18,6 +18,12 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import re
 import os
+import string
+from nltk.stem import *
+stemmer = PorterStemmer()
+from nltk import corpus
+
+
 
 # Import Modules
 import SCA_Web_Scraper_Module_1 as scraper_1
@@ -64,7 +70,21 @@ def loop_over_artilces_test(Url, Start):
 
 # CREATE FUNCTION TO GENERATE WORD FREQUENCY DISTRIBUTION
 
-scraper_1.concat_text_from_case_summary('case_summary_text')
+
+
+def get_word_freq():
+    # Identify & Open File
+    target_dir = '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper'
+    File = 'case_summary_text.txt'
+    File_open = open(File)
+    File_read = File_open.read()
+    
+    # Tokenize & Clean Text
+
+
+
+
+
 
 
 
