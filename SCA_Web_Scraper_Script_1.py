@@ -56,7 +56,7 @@ def loop_over_artilces_test(Url, Start):
         bsObj = BeautifulSoup(html.read(), 'lxml')
     
         # Scrape Data Points
-        data = scraper_1.get_titles_referenced_complaint_docs(bsObj)
+        data = scraper_1.get_plaintiff_firm(bsObj)
         print(data)
     return None
 
@@ -102,21 +102,24 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     Plaintiff_firm_list = []
     Defendant_firm_list = []
 
+    # Article Counter
+    Count = 0
+
     # START LOOP OVER ARTICLES - Increase Value by 1 on each iteration
-    for x in range(0,10):
+    for x in range(0,500):
         Start +=1
-        
-        '''
+         
         # Progress Timer
-        if Start == 100:
+        Count +=1       
+        if Count == 50:
+            print('10% Complete')
+        elif Count == 100:
             print('20% Complete')
-        elif Start == 200:
+        elif Count == 150:
+            print('30% Complete')
+        elif Count == 200:
             print('40% Complete')
-        elif Start == 300:
-            print('60% Complete')
-        elif Start == 400:
-            print('80% Complete')
-        '''
+       
 
         # Create Beautiful Soup Object per article
         html = urlopen(Url + str(Start))
@@ -161,6 +164,7 @@ def loop_over_artilces(Url, Start, Write_to_excel):
         Case_summary = scraper_1.get_case_summary(bsObj)
         Case_summary_list.append(Case_summary)
 
+
         # COMPANY SECTION----------------------------------------------
         
         # Sector
@@ -181,6 +185,7 @@ def loop_over_artilces(Url, Start, Write_to_excel):
         # Company Market
         Company_market = scraper_1.get_company_data_points(bsObj, 'Company Market')
         Company_market_list.append(Company_market)
+
 
         # FIRST FILED COMPLAINT SECTION---------------------------------
         

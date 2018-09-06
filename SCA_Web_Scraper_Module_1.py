@@ -191,12 +191,16 @@ def get_referenced_complaint_data_points(Obj,data_point):
 # DEFENSE COUNSEL AND PLAINTIFF FIRM
 
 def get_plaintiff_firm(Obj):
-    First_identified_complaint = Obj.find('section', {'id':'fic'})
-    if First_identified_complaint == None:
-        return None
+    Ref_complaint = Obj.find('section', {'id':'ref'})
+    if Ref_complaint != None:
+        Container = Ref_complaint.find('ol', {'class':'styled'})
+        if Container != None:
+            Firms = Container.find('li').get_text()
+            return Firms
+        else:
+            return None
     else:
-        Plaintiff_firm = First_identified_complaint.find('ol', {'class':'styled'}).get_text()
-        return Plaintiff_firm
+        return None
 
 # Defense Counsel (TBD)
 
