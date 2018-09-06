@@ -17,11 +17,12 @@ from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import pandas as pd
 import re
+import os
 
 # Import Modules
-
 import SCA_Web_Scraper_Module_1 as scraper_1
 
+# WEB PAGE OBJECTS------------------------------------------------------------- 
 '''Structure Web Page List of Cases
 Root =              http://securities.stanford.edu/
 Specific Cases =    filings-case.html?id=106716
@@ -29,8 +30,6 @@ Specific Cases =    filings-case.html?id=106716
                     pages that we would iterate over. You could also look into
                     downloading each page to your laptop maybe using bash curl. 
 '''
-
-# Web Page Objects
 Url = 'http://securities.stanford.edu/filings-case.html?id='
 Last = 106716
 First = 101474 
@@ -61,6 +60,33 @@ def loop_over_artilces_test(Url, Start):
     return None
 
 #loop_over_artilces_test(Url, First_minus_one)
+
+
+# CREATE FUNCTION TO GENERATE WORD FREQUENCY DISTRIBUTION
+
+def get_word_freq_distribution():
+
+    # Identify Excel File
+
+    # Iterate Over Excel File
+
+    # Import create Concat function to create a single word doc of text
+
+    # Once File Created reimport and process text (tokenize and clean up)
+
+    
+    # Create a word frequency using the dictionary object and get command. 
+
+
+    # Write to Excel the word-frequency distr
+
+
+    return None
+
+
+
+
+
 
 
 
@@ -163,7 +189,6 @@ def loop_over_artilces(Url, Start, Write_to_excel):
         # Scrape Case Summary
         Case_summary = scraper_1.get_case_summary(bsObj)
         Case_summary_list.append(Case_summary)
-
 
         # COMPANY SECTION----------------------------------------------
         

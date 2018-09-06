@@ -228,4 +228,43 @@ def get_titles_referenced_complaint_docs(Obj):
 
 
 
+# MINE CASE SUMMARY
+'''Values to min
+1.) Statutes referenced:  Ex 1934 Act, ERISA, etc. 
+2.) Violations
+3.) Type of lawsuit:  Probably need to create categories.  Ex involving a merger. 
+4.) Allegations:  ex:  false and misleading statements. 
+5.) Earnings
+6.) Stock drop %. 
+'''
+
+
+def create_Concatenated_text_file(SCA_scraped_file, new_file_name):
+    '''
+    Input      = File with information scraped from Stanford Law Web Page
+    Operations = Create new file, limit docketfile to 'docket text', iterate rows, write to new file. 
+    Output     = Function will write the new file to the current-working-direcotry.  No other return from function.  
+    '''
+    # Objects
+
+    target_dir = '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper'
+    
+
+
+    # Create new write file
+    New_File = open(str(new_file_name) + '.txt','w')
+    
+    # Limit Docket Sheet to Text Column
+    df_docket_text = df_docketFile['docket_text']
+    
+    # Create Loop Through List of Directories
+    for row in df_docket_text:
+        
+        # Write files to new file
+        New_File.write(str(row))
+        New_File.write('\n')
+    # Close File
+    New_File.close()
+    print('Concatenated text created\n')
+    return None
 
