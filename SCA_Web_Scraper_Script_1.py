@@ -64,30 +64,7 @@ def loop_over_artilces_test(Url, Start):
 
 # CREATE FUNCTION TO GENERATE WORD FREQUENCY DISTRIBUTION
 
-def get_word_freq_distribution():
-
-    # Identify Excel File
-
-    # Iterate Over Excel File
-
-    # Import create Concat function to create a single word doc of text
-
-    # Once File Created reimport and process text (tokenize and clean up)
-
-    
-    # Create a word frequency using the dictionary object and get command. 
-
-
-    # Write to Excel the word-frequency distr
-
-
-    return None
-
-
-
-
-
-
+scraper_1.concat_text_from_case_summary('case_summary_text')
 
 
 
@@ -306,7 +283,7 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     return None
 
 
-loop_over_artilces(Url, First_minus_one, Write_to_excel = True)
+#loop_over_artilces(Url, First_minus_one, Write_to_excel = True)
 
 
 

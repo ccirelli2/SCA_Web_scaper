@@ -239,32 +239,28 @@ def get_titles_referenced_complaint_docs(Obj):
 '''
 
 
-def create_Concatenated_text_file(SCA_scraped_file, new_file_name):
-    '''
-    Input      = File with information scraped from Stanford Law Web Page
-    Operations = Create new file, limit docketfile to 'docket text', iterate rows, write to new file. 
-    Output     = Function will write the new file to the current-working-direcotry.  No other return from function.  
-    '''
-    # Objects
+def concat_text_from_case_summary(new_file_name):
 
+    # Identify Excel File
     target_dir = '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper'
+    File = 'SCA_scraper_data_export.xlsx'
+    df = pd.read_excel(target_dir+'/'+File)
+    # Limit datafrmae to Case Summary Text
+    df_case_summary = df['Case_summary']
     
-
-
     # Create new write file
     New_File = open(str(new_file_name) + '.txt','w')
-    
-    # Limit Docket Sheet to Text Column
-    df_docket_text = df_docketFile['docket_text']
-    
+
     # Create Loop Through List of Directories
-    for row in df_docket_text:
-        
+    for row in df_case_summary:
+
         # Write files to new file
         New_File.write(str(row))
         New_File.write('\n')
+
     # Close File
     New_File.close()
-    print('Concatenated text created\n')
+    print('Case study text concatenated\n')
     return None
+
 
