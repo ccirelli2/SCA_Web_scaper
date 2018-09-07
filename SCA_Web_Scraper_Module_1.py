@@ -20,6 +20,12 @@ from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import pandas as pd
 import re
+import os
+import string
+from nltk.stem import *
+stemmer = PorterStemmer()
+from nltk import corpus
+import nltk
 
 
 def write_to_excel(dataframe, filename):
@@ -263,7 +269,7 @@ def concat_text_from_case_summary(new_file_name):
     return None
 
 
-def clean_andTokenize_text(Text_file):
+def clean_and_tokenize_text(Text_file):
     '''
     Input      = Text File
     Operations = Tokenize, lowercase, strip punctuation/stopwords/nonAlpha
@@ -272,7 +278,7 @@ def clean_andTokenize_text(Text_file):
     # Strip Lists
     Punct_list = set((punct for punct in string.punctuation))
     Stopwords = nltk.corpus.stopwords.words('english')
-    Set_names = get_set_human_names()
+    #Set_names = get_set_human_names()
     # Tokenize Text
     Text_tokenized = nltk.word_tokenize(Text_file)
     # Convert tokens to lowercase
@@ -284,16 +290,35 @@ def clean_andTokenize_text(Text_file):
     # Strip Non-Alpha
     Text_strip_nonAlpha = filter(lambda x: x.isalpha(), Text_strip_stopWords)
     # Strip 2 letter words
-    Text_strip_2letter_words = filter(lambda x: len(x)>3, Text_strip_nonAlpha)
+    Text_strip_2letter_words = filter(lambda x: len(x)>2, Text_strip_nonAlpha)
     # Strip names
-    Text_strip_names_2 = filter(lambda x: x not in Set_names, Text_strip_2letter_words)
-    # Take Stem of Each Token 
-    Text_stem = [stemmer.stem(x) for x in Text_strip_names_2]
-    # Note that we are not returning a set here as with Ngrams we are looking for patters which could be altered materially by using
-    # a set function, which is better used outside the function if need be. 
-    return Text_stem
+    #Text_strip_names_2 = filter(lambda x: x not in Set_names, Text_strip_2letter_words)
+     
+    return list(Text_strip_2letter_words)
 
 
+
+
+
+# CREATE FUNCTION TO GENERATE WORD FREQUENCY DISTRIBUTION-------------------------
+
+def get_word_freq():
+    # Identify & Open File
+    target_dir = '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper'
+    File = 'case_summary_text.txt'
+    File_open = open(File)
+    File_read = File_open.read()
+
+    # Tokenize & Clean Text
+    clean_tokenized_text = scraper_1.clean_and_tokenize_text(File_read)
+
+    # Dictionary Object
+    Dictionary = {}
+
+    for token in clean_tokenized_text:
+        Dictionary[token] = Dictionary.get(token, 0) + 1
+
+    return Dictionary
 
 
 

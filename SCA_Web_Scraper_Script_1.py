@@ -22,11 +22,14 @@ import string
 from nltk.stem import *
 stemmer = PorterStemmer()
 from nltk import corpus
-
+import nltk
 
 
 # Import Modules
 import SCA_Web_Scraper_Module_1 as scraper_1
+
+
+
 
 # WEB PAGE OBJECTS------------------------------------------------------------- 
 '''Structure Web Page List of Cases
@@ -66,21 +69,6 @@ def loop_over_artilces_test(Url, Start):
     return None
 
 #loop_over_artilces_test(Url, First_minus_one)
-
-
-# CREATE FUNCTION TO GENERATE WORD FREQUENCY DISTRIBUTION
-
-
-
-def get_word_freq():
-    # Identify & Open File
-    target_dir = '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper'
-    File = 'case_summary_text.txt'
-    File_open = open(File)
-    File_read = File_open.read()
-    
-    # Tokenize & Clean Text
-
 
 
 
@@ -303,7 +291,7 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     return None
 
 
-#loop_over_artilces(Url, First_minus_one, Write_to_excel = True)
+loop_over_artilces(Url, First_minus_one, Write_to_excel = True)
 
 
 
