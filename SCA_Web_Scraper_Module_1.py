@@ -200,13 +200,15 @@ def get_plaintiff_firm(Obj):
     Ref_complaint = Obj.find('section', {'id':'ref'})
     if Ref_complaint != None:
         Container = Ref_complaint.find('ol', {'class':'styled'})
-        if Container != None:
-            Firms = Container.find('li').get_text()
-            return Firms
-        else:
+        if Container == None:
             return None
-    else:
-        return None
+        else:
+            try:
+                Firms = Container.find('li').get_text()
+                return Firms
+            except AttributeError:
+                return None
+       
 
 # Defense Counsel (TBD)
 

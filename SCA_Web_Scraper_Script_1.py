@@ -117,19 +117,19 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     Count = 0
 
     # START LOOP OVER ARTICLES - Increase Value by 1 on each iteration
-    for x in range(0,500):
+    for x in range(0,2000):
         Start +=1
          
         # Progress Timer
         Count +=1       
-        if Count == 50:
+        if Count == 200:
             print('10% Complete')
-        elif Count == 100:
+        elif Count == 400:
             print('20% Complete')
-        elif Count == 150:
-            print('30% Complete')
-        elif Count == 200:
-            print('40% Complete')
+        elif Count == 1000:
+            print('50% Complete')
+        elif Count == 1250:
+            print('75% Complete')
        
 
         # Create Beautiful Soup Object per article
