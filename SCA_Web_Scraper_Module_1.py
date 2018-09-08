@@ -28,10 +28,37 @@ from nltk import corpus
 import nltk
 
 
+# UTILITY FUNCTIONS---------------------------------------------
+
 def write_to_excel(dataframe, filename):
     writer = pd.ExcelWriter(filename+'.xlsx')
     dataframe.to_excel(writer, 'Data')
     writer.save()
+
+def progress_recorder(Count_obj):
+    '''Objective:  Return progress of scraping code to the user'''
+    if Count == range_value * 0.1:
+         print('10% Complete')
+    elif Count == range_value * 0.2:
+        print('20% Complete')
+    elif Count == range_value * 0.3:
+        print('30% Complete')
+    elif Count == range_value * 0.4
+        print('40% Complete')
+    elif Count == range_value * 0.5:
+        print('50% Complate')
+    elif Count == range_value * 0.6:
+        print('60% Complate')
+    elif Count == range_value * 0.7:
+        print('70% Complate')
+    elif Count == range_value * 0.8:
+        print('80% Complate')
+     elif Count == range_value * 0.9:
+        print('90% Complate')
+    elif Count == range_value * 1.0:
+        print('Scraping Completed!')
+    return None        
+
 
 # CASE SUMMARY----------------------------------------------------
 

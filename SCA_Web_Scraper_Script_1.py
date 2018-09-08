@@ -117,20 +117,14 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     Count = 0
 
     # START LOOP OVER ARTICLES - Increase Value by 1 on each iteration
-    for x in range(0,2000):
+    range_value = range(0,2000)
+    
+    for x in range_value:
         Start +=1
          
-        # Progress Timer
+        # Progress Recorder
         Count +=1       
-        if Count == 200:
-            print('10% Complete')
-        elif Count == 400:
-            print('20% Complete')
-        elif Count == 1000:
-            print('50% Complete')
-        elif Count == 1250:
-            print('75% Complete')
-       
+        scraper_1.progress_recorder(Count)          
 
         # Create Beautiful Soup Object per article
         html = urlopen(Url + str(Start))
