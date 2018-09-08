@@ -12,7 +12,7 @@ The purpose of this script is to scrape data from the Stanford Law Securities
 Class Action Web page and convert it to structured data for ML training. 
 '''
 
-# Import Libraries
+## Import Libraries
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -25,13 +25,12 @@ from nltk import corpus
 import nltk
 
 
-# Import Modules
+## Import Modules
 import SCA_Web_Scraper_Module_1 as scraper_1
 
 
 
-
-# WEB PAGE OBJECTS------------------------------------------------------------- 
+## WEB PAGE OBJECTS____________________________________________________________ 
 '''Structure Web Page List of Cases
 Root =              http://securities.stanford.edu/
 Specific Cases =    filings-case.html?id=106716
@@ -47,7 +46,6 @@ First_minus_one= 101473
 
 
 ## PETRI DISH SECTION___________________________________________________________
-
 '''Test code before adding to scaper'''
 # Get Titles From Range of Articles
 def loop_over_artilces_test(Url, Start):  
@@ -72,14 +70,12 @@ def loop_over_artilces_test(Url, Start):
 
 
 
-
-
-
-
 ## SCRAPER_______________________________________________________________________
 
-def loop_over_artilces(Url, Start, Write_to_excel):  
+def SCA_data_scraper(Url, Start, Write_to_excel):  
+    '''Inputs
 
+    '''
 
     # LISTS TO CAPTURE DATA POINTS-------------------------------------
     # Summary Section
@@ -116,10 +112,15 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     # Article Counter
     Count = 0
 
-    # START LOOP OVER ARTICLES - Increase Value by 1 on each iteration
+    # START LOOP OVER ARTICLES_________________________________________________
+    
+    # Create a range over which to iterate the loop. 
     range_value = range(0,2000)
     
+    # Start Loop 
     for x in range_value:
+        
+        # First Page to Start Iteration
         Start +=1
          
         # Progress Recorder
@@ -169,7 +170,7 @@ def loop_over_artilces(Url, Start, Write_to_excel):
         Case_summary = scraper_1.get_case_summary(bsObj)
         Case_summary_list.append(Case_summary)
 
-        # COMPANY SECTION----------------------------------------------
+        # COMPANY SECTION-------------------------------------------------_
         
         # Sector
         Sector = scraper_1.get_company_data_points(bsObj, 'Sector')
@@ -191,7 +192,7 @@ def loop_over_artilces(Url, Start, Write_to_excel):
         Company_market_list.append(Company_market)
 
 
-        # FIRST FILED COMPLAINT SECTION---------------------------------
+        # FIRST FILED COMPLAINT SECTION------------------------------------
         
         # Court
         Court = scraper_1.get_first_complaint_data_points(bsObj, 'Court')
@@ -213,7 +214,7 @@ def loop_over_artilces(Url, Start, Write_to_excel):
         First_class_period_end_list.append(Class_period_end)
 
         
-        # REFERENCED FILED COMPLAINT SECTION---------------------------------
+        # REFERENCED FILED COMPLAINT SECTION---------------------------------------
 
         # Court
         Ref_court = scraper_1.get_referenced_complaint_data_points(bsObj, 'Court')
@@ -234,7 +235,7 @@ def loop_over_artilces(Url, Start, Write_to_excel):
         Ref_class_period_end = scraper_1.get_referenced_complaint_data_points(bsObj, 'Class Period End')
         Ref_class_period_end_list.append(Ref_class_period_end)
 
-        # LAW FIRM SECTION----------------------------------------------------
+        # LAW FIRM SECTION---------------------------------------------------------
 
         # Plaintiff Firm
         Plaintiff_firm = scraper_1.get_plaintiff_firm(bsObj)
@@ -246,7 +247,7 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     '''Add duration from filing - close date'''
 
 
-    # DATA ORGANIZATION SECTION-----------------------------------------------------
+    # DATA ORGANIZATION SECTION----------------------------------------------------
 
     # Create DataFrame to House Values
     df = pd.DataFrame({})
@@ -275,7 +276,6 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     df['Ref_Class_Period_End'] = Ref_class_period_end_list
     df['Plaintiff_Firm'] = Plaintiff_firm_list
 
-
     # Write to Excel
     if Write_to_excel == True:
         scraper_1.write_to_excel(df, 'SCA_scraper_data_export')
@@ -284,14 +284,6 @@ def loop_over_artilces(Url, Start, Write_to_excel):
     
     return None
 
-
-loop_over_artilces(Url, First_minus_one, Write_to_excel = True)
-
-
-
-
-
-
-
+#loop_over_artilces(Url, First_minus_one, Write_to_excel = True)
 
 

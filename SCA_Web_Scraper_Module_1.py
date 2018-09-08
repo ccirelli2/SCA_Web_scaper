@@ -43,7 +43,7 @@ def progress_recorder(Count_obj):
         print('20% Complete')
     elif Count == range_value * 0.3:
         print('30% Complete')
-    elif Count == range_value * 0.4
+    elif Count == range_value * 0.4:
         print('40% Complete')
     elif Count == range_value * 0.5:
         print('50% Complate')
@@ -53,7 +53,7 @@ def progress_recorder(Count_obj):
         print('70% Complate')
     elif Count == range_value * 0.8:
         print('80% Complate')
-     elif Count == range_value * 0.9:
+    elif Count == range_value * 0.9:
         print('90% Complate')
     elif Count == range_value * 1.0:
         print('Scraping Completed!')
@@ -149,6 +149,7 @@ def get_company_data_points(Obj, data_point):
         else:
             return None
 
+
 # FIRST IDENTIFIED COMPLAINT------------------------------------------------
 
 def get_first_complaint_data_points(Obj,data_point):
@@ -241,7 +242,6 @@ def get_plaintiff_firm(Obj):
 
 
 
-
 # DOCUMENTS AVAILABLE ON WEB PAGE---------------------------------------------
 
 def get_titles_first_complaint_docs(Obj):
@@ -262,8 +262,7 @@ def get_titles_referenced_complaint_docs(Obj):
 
 
 
-
-# MINE CASE SUMMARY-----------------------------------------------------------
+# MINE CASE SUMMARY____________________________________________________
 '''Values to min
 1.) Statutes referenced:  Ex 1934 Act, ERISA, etc. 
 2.) Violations
@@ -297,7 +296,6 @@ def concat_text_from_case_summary(new_file_name):
     print('Case study text concatenated\n')
     return None
 
-
 def clean_and_tokenize_text(Text_file):
     '''
     Input      = Text File
@@ -319,11 +317,11 @@ def clean_and_tokenize_text(Text_file):
     # Strip Non-Alpha
     Text_strip_nonAlpha = filter(lambda x: x.isalpha(), Text_strip_stopWords)
     # Strip 2 letter words
-    Text_strip_2letter_words = filter(lambda x: len(x)>2, Text_strip_nonAlpha)
+    Text_strip_2_letter_words = filter(lambda x: len(x)>2, Text_strip_nonAlpha)
     # Strip names
-    #Text_strip_names_2 = filter(lambda x: x not in Set_names, Text_strip_2letter_words)
+    #Text_strip_names = filter(lambda x: x not in Set_names, Text_strip_2_letter_words)
      
-    return list(Text_strip_2letter_words)
+    return list(Text_strip_2_letter_words)
 
 
 
