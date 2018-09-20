@@ -12,6 +12,21 @@ The purpose of this script is to scrape data from the Stanford Law Securities
 Class Action Web page and convert it to structured data for ML training. 
 '''
 
+
+'''NOTES
+
+1.) Page Order:  It is not clear that the page order coincides with the dates, i.e. they are not chronological. 
+                We should record the page number next to the date in order to test this idea. 
+                We should also take the range of the first page to last in order to know where the scraper should stop. 
+                Then we can convert this into a numerical representation of what our scraper has to trasverse in order to scrape
+                the entirety of the side. 
+
+'''
+
+
+
+
+
 ## Import Libraries
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
@@ -77,6 +92,8 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
 
     '''
 
+    print('Starting up Scraper...VROOM!...VROOM!', '\n')
+
     # LISTS TO CAPTURE DATA POINTS-------------------------------------
     # Summary Section
     Defendant_list = []
@@ -115,7 +132,8 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
     # START LOOP OVER ARTICLES_________________________________________________
     
     # Create a range over which to iterate the loop. 
-    range_value = range(0,2000)
+    upper_bound = 2500
+    range_value = range(0, upper_bound)
     
     # Start Loop 
     for x in range_value:
@@ -125,7 +143,7 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
          
         # Progress Recorder
         Count +=1       
-        scraper_1.progress_recorder(Count)          
+        scraper_1.progress_recorder(Count, upper_bound)          
 
         # Create Beautiful Soup Object per article
         html = urlopen(Url + str(Start))
@@ -284,6 +302,6 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
     
     return None
 
-#loop_over_artilces(Url, First_minus_one, Write_to_excel = True)
+SCA_data_scraper(Url, First_minus_one, True)  
 
 
