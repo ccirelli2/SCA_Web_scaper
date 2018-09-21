@@ -54,8 +54,9 @@ Specific Cases =    filings-case.html?id=106716
                     downloading each page to your laptop maybe using bash curl. 
 '''
 Url = 'http://securities.stanford.edu/filings-case.html?id='
-Last = 106716
-First = 101474 
+
+Beginning_page = 101000 
+End_page =  106732
 First_minus_one= 101473
 
 
@@ -95,6 +96,9 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
     print('Starting up Scraper...VROOM!...VROOM!', '\n')
 
     # LISTS TO CAPTURE DATA POINTS-------------------------------------
+
+    # Page Number
+    Page_number_list = []
     # Summary Section
     Defendant_list = []
     Case_Status_list = []
@@ -132,7 +136,7 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
     # START LOOP OVER ARTICLES_________________________________________________
     
     # Create a range over which to iterate the loop. 
-    upper_bound = 2500
+    upper_bound = End_page - Beginning_page
     range_value = range(0, upper_bound)
     
     # Start Loop 
@@ -144,6 +148,9 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
         # Progress Recorder
         Count +=1       
         scraper_1.progress_recorder(Count, upper_bound)          
+
+        # Capture Page Number
+        Page_number_list.append(Count)
 
         # Create Beautiful Soup Object per article
         html = urlopen(Url + str(Start))
@@ -269,6 +276,7 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
 
     # Create DataFrame to House Values
     df = pd.DataFrame({})
+    df['Page_number'] = Page_number_list
     df['Defendant'] = Defendant_list
     df['Case_Status'] = Case_Status_list 
     df['Filing_date'] = Filing_date_list
@@ -294,14 +302,22 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
     df['Ref_Class_Period_End'] = Ref_class_period_end_list
     df['Plaintiff_Firm'] = Plaintiff_firm_list
 
+    # CLEAN UP DATAFRAME
+    '''Because there are many pages that include none values, a quick way of getting rid of them
+    is to sort the date in descending order'''
+
+    df_final = df.sort_values('Filing_date', ascending = False) 
+
+
+
     # Write to Excel
     if Write_to_excel == True:
-        scraper_1.write_to_excel(df, 'SCA_scraper_data_export')
+        scraper_1.write_to_excel(df_final, 'SCA_scraper_data_export')
     else:
-        print(df)
+        print(df_final)
     
     return None
 
-SCA_data_scraper(Url, First_minus_one, True)  
+SCA_data_scraper(Url, Beginning_page, True)  
 
 

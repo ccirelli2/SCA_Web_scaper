@@ -37,25 +37,25 @@ def write_to_excel(dataframe, filename):
 
 def progress_recorder(Count_obj, range_value_obj):
     '''Objective:  Return progress of scraping code to the user'''
-    if Count_obj == range_value_obj * 0.1:
+    if Count_obj == round(range_value_obj * 0.1,0):
          print('10% Complete')
-    elif Count_obj == range_value_obj * 0.2:
+    elif Count_obj == round(range_value_obj * 0.2,0):
         print('20% Complete')
-    elif Count_obj == range_value_obj * 0.3:
+    elif Count_obj == round(range_value_obj * 0.3,0):
         print('30% Complete')
-    elif Count_obj == range_value_obj * 0.4:
+    elif Count_obj == round(range_value_obj * 0.4,0):
         print('40% Complete')
-    elif Count_obj == range_value_obj * 0.5:
-        print('50% Complate')
-    elif Count_obj == range_value_obj * 0.6:
-        print('60% Complate')
-    elif Count_obj == range_value_obj * 0.7:
-        print('70% Complate')
-    elif Count_obj == range_value_obj * 0.8:
-        print('80% Complate')
-    elif Count_obj == range_value_obj * 0.9:
-        print('90% Complate')
-    elif Count_obj == range_value_obj * 1.0:
+    elif Count_obj == round(range_value_obj * 0.5,0):
+        print('50% Complete')
+    elif Count_obj == round(range_value_obj * 0.6,0):
+        print('60% Complete')
+    elif Count_obj == round(range_value_obj * 0.7,0):
+        print('70% Complete')
+    elif Count_obj == round(range_value_obj * 0.8,0):
+        print('80% Complete')
+    elif Count_obj == round(range_value_obj * 0.9,0):
+        print('90% Complete')
+    elif Count_obj == round(range_value_obj * 1.0,0):
         print('Scraping Completed!')
     return None        
 
