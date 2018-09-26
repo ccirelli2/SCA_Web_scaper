@@ -55,7 +55,7 @@ Specific Cases =    filings-case.html?id=106716
 Url = 'http://securities.stanford.edu/filings-case.html?id='
 
 Beginning_page = 101000 
-End_page =  106732
+End_page =  10672
 First_minus_one= 101473
 Test_end_page = 101010       # Used for testing code, = 10 iterations
 
@@ -128,6 +128,11 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
     # Law Firms
     Plaintiff_firm_list = []
     Defendant_firm_list = []
+
+    # Claims Summary list
+    ClaimType_IPO_list = []  
+    ClaimType_10b5_list = []  
+
 
     # Article Counter
     Count = 0
@@ -207,13 +212,11 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
         updated and the function should go to the next category. 
 
         '''
-
-        IPO_list = []
+    
 
         # Convert Text to Nograms
-        Nograms_claims_text = scraper_module_2.clean_and_tokenize_text(Case_summary)
+        Nograms_claims_text = scraper_module_2.get_Ngrams(Case_summary, 'Bigrams')
 
-        Claim_type_dict = scraper_module_3.Claim_type_dictionary
 
         '''
         The below code will loop over each key searching for matches in its values. 
@@ -227,24 +230,34 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
             and ultimately to the next page to scrape. 
 
         '''
-
-
+        # Import Claim Type Object
+        Claim_type_dict = scraper_module_3.Claim_type_dictionary
+        
         # Loop over ngrams
-        for gram in Nograms_claims_text:
-            # Loop over dictionary keys
-            for key in Claim_type_dict:
-                # Search for a match between the gram and the values
-                if gram in Claim_type_dict.values:
-                    # If a match, append 1 to the list associated w/ our key and break
-                    key+_list.append(1)
-                    break
-                    # Else, and after iterating the text, append a 0
-                else:
-                    key+_list.append(0)
-
+        #for gram in Nograms_claims_text:
+           
+        # Loop over dictionary keys
+        for key in Claim_type_dict:
             
+            #**** Think about create a function that creates lists using the key being
+            #     looped over as opposed to creating static lists.  This way, everytime
+            #     you create a new key value pair you don't need to update your list of lists
+            #     in each one of these functions.  
 
-
+            Inter_list_IPO = []
+            Inter_list_10b5 = []
+            
+            # Find matches for each key and update inter lists. 
+            scraper_module_3.determine_inter_list_to_append(key, Nograms_claims_text, 
+                                                            Claim_type_dict, 
+                                                            Inter_list_IPO, 
+                                                            Inter_list_10b5)
+        # Based on matches found, update our primary lists to be included in df. 
+        scraper_module_3.determine_primary_list_to_append(Inter_list_IPO, 
+                            Inter_list_10b5, ClaimType_IPO_list,                                                            ClaimType_10b5_list)
+        
+            
+       
         # COMPANY SECTION-------------------------------------------------_
         
         # Sector
@@ -321,6 +334,11 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
     # Combined Metrics
     '''Add duration from filing - close date'''
 
+    # Print Len Lists 
+    #print('Length of Page Number List    => ', len(Page_number_list), '\n')
+    #print('Length of ClaimType_IPO_list  => ', len(ClaimType_IPO_list), '\n')
+    #print('Length of ClaimType_10b5_list => ', len(ClaimType_10b5_list))
+    
 
     # DATA ORGANIZATION SECTION----------------------------------------------------
 
@@ -351,6 +369,8 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
     df['Ref_Class_Period_Start'] = Ref_class_period_start_list
     df['Ref_Class_Period_End'] = Ref_class_period_end_list
     df['Plaintiff_Firm'] = Plaintiff_firm_list
+    df['ClaimType_IPO'] =  ClaimType_IPO_list
+    df['ClaimType_10b5'] = ClaimType_10b5_list
 
     # CLEAN UP DATAFRAME
     '''Because there are many pages that include none values, a quick way of getting rid of them
@@ -364,12 +384,38 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
 
     # Write to Excel
     if Write_to_excel == True:
+        os.chdir('/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output')
         scraper_module_1.write_to_excel(df_final, 'SCA_scraper_data_export_'+ Todays_date_time)
     else:
         print(df_final)
     
     return None
 
-SCA_data_scraper(Url, Beginning_page, False)  
+
+
+# Execute Code
+SCA_data_scraper(Url, Beginning_page, True)  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

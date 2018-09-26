@@ -11,61 +11,103 @@ Functions   Below are the functions found in this module
 
 
 
-Claim_type_dictionary = {'IPO': ['ipo', 'prospectus']}
+Claim_type_dictionary = {
+        # Statutes Referenced
+        '1934_Exchange_Act':[('1934', 'rule'), ('1934', 'exchange')],
+        '1933_Act':         [('act', '1933'), ('1933', 'section')],
+        '10b5':             [('rule', '10b-5'), ('10b-5', 'promulgated')],
+        'Derivative':       [('shareholder', 'derivative'), ('derivative', 'action')],
+        # Transaction Referenced
+        'IPO':              [('initial', 'public'), ('public', 'offering'), 
+                             ('registration', 'statement'), ('alleges', 'prospectus'), 
+                             ('ipo', 'exchange'), ('prospectus', 'materially'), 
+                             ('prospectus', 'prospectus'), ('prospectus', 'sec')
+                             ('incorporated', 'prospectus'), ('ipo', 'connection'), 
+                             ('regarding', 'ipos')], 
+        'Secondary_offering':[('secondary', 'offering')],
+        'Bankruptcy':       [('bankruptcy', 'court'), ('bankruptcy', 'code'), 
+                             ('states', 'bankruptcy'), ('filed', 'bankruptcy')],
+        # Allegations Mentioned
+        'False_misleading': [('false', 'misleading'), ('misleading', 'statements'), 
+                             ('artificially', 'inflated'), ('misleading', 'failed'), 
+                             ('material', 'misrepresentations'), ('artificially', 'inflating'), 
+                             ('misrepresentations', 'market'), ('misrepresented', 'following'), 
+                             ('materially', 'overstated')],
+        'Failed_disclose':  [('failed', 'disclose'), ('disclose', 'material')], 
+        'Commissions':      [('undisclosed', 'commissions'), ('commissions', 'certain')],
+        'Fees':             [('fees', 'reimbursement'), ('fees', 'expenses')],
+        'Accounting':       [('accounting', 'principles'), ('improper', 'accounting'), 
+                             ('restate', 'financial')],
+        'Conflicts_Interest':[('conflicts', 'interest')], 
+        'Corporate_Gov':    [('corporate', 'governance')],
+        # Fillings Referenced
+        '10Q_Filling':      [('form', '10-q'), ('10-q', 'quarterly')], 
+        '10K_Filling':      [('form', '10-k'), ('10-k', 'fiscal')],
+        'Press_Release':    [('issued', 'press')],
+        # Quarter Referenced
+        'Second_Quarter':   [('second', 'quarter')],
+        'Third_Quarter':    [('third', 'quarter')],
+        'Fourth_Quarter':   [('fourth', 'quarter')], 
+        # Mention of Counterparties
+        'Customers':        [('customers', 'agree'), ('agreement', 'customers')], 
+        # Financial Metrics Mentioned
+        'Net_Income':       [('net', 'income'), ('income', 'earnings')], 
+        'Revenue_Rec':      [('revenue', 'recognition')]
+        'Cash_Flow':        [('cash', 'flow')],,
+        # Consequences Mentioned
+        'Stock_Drop':       [('stock', 'dropped')],
+        'Heavy_traing':     [('heavy', 'trading')],
+        
+        
+                            }
+                        
+                        
+                        
+def determine_inter_list_to_append(key, text, dict_obj, List1, List2):
+    '''Purpose
+    The purpose of this script is to determine which is to be updated based on the 
+    key with which we are currently checking to see if there is a match.
+    Inputs =        key:
+                    dict_obj:
+                    List1-n match is whether or not there was a match found, which determines if
+                    we appenda 0 or 1. 
+    '''
+    # Iterate the list of ngrams    
+    for gram in text:
+    # Search for a match between the gram and the values
+        if gram in dict_obj[key]:
+        # If a match, append 1 to the list associated w/ our key and break
+            if key == 'IPO':
+                List1.append(1)
+            elif key == '10b5':
+                List2.append(1)
+        # If no match was found, append a 0
+        else:
+            if key == 'IPO':
+                List1.append(0)
+            elif key == '10b5':
+                List2.append(0)
+    return None       
 
 
+def determine_primary_list_to_append(Inter_list_1, Inter_list_2, Primary_list_1, Primary_list_2):
+   '''
+    All we are doing with this function is determining whether any matches were found for 
+    each key by taking the length of our inter lists.  Since many matches could be found, 
+    we append an intermediary list with all matches and then convert that to a binary value 
+    at the primary list level, which is the single claim or page level. 
 
+   '''
 
-def createper_claim_violation_category_cols(Claim_text, Violation_dictionary, Ngram_type):
-
-    Count_col_completion = 0
-
-    # Iterate over each key of the violation dictionary
-    for key in violation_dictionary:
-
-        # Create a list of values that will represent if a match was found between the tokens in the text and the
-        # values associated with the key.  It should be 1 value per key, either 1 or 0.
-        List_matches_key_violation = []
-
-        # Iterate over each row in our dataframe
-        for row in dataframe['LOSS_DESCRIPTION.1']:
-
-            # Tokenize and clean the text.
-            tokenize_claims_text = text_cleaning_pipeline(row)
-
-            # Create an intermediary list to capture the matches from the
-            token_list_matches = []
-
-            # A. Check to see if the tokenized row is a list (it may have 0 values after the text clearning):
-            if isinstance(tokenize_claims_text, list):
-
-                # Iterate over each token in the tokenized row
-                for token in tokenize_claims_text:
-
-                    # Check to see if the token is in the key values
-                    if token in violation_dictionary[key]:
-                        # If we have a match, append 1 to the token_list_matches list.
-                        token_list_matches.append(1)
-                        # If we found a match, break the current for loop as we are done with this row.
-                        break
-                    else:
-                        # If we haven't appended a 0 to our list yet (as a 1 would have already broken the for loop)
-                        if len(token_list_matches) == 0:
-                            token_list_matches.append(0)
-
-                # Once finished iterating over the tokens of the row, check to see what is in our list
-                if sum(token_list_matches) > 0:
-                    # If the sum of the list is greater than zero, then we found at least one match.
-                    List_matches_key_violation.append(1)
-                else:
-                    # If no, then we found no matches and appended a 0.
-                    List_matches_key_violation.append(0)
-
-            # B. If the tokenized row was not a list, simply append 0 to the List of matches
-            else:
-                List_matches_key_violation.append(0)
-
-
-
+   if sum(Inter_list_1) > 0:
+        Primary_list_1.append(1)
+   else:
+        Primary_list_1.append(0)
+   if sum(Inter_list_2) > 0:
+        Primary_list_2.append(1)
+   else:
+        Primary_list_2.append(0)
+    
+   return None
 
 
