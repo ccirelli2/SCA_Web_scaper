@@ -23,10 +23,6 @@ Class Action Web page and convert it to structured data for ML training.
 
 '''
 
-
-
-
-
 ## Import Libraries
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
@@ -44,6 +40,8 @@ from datetime import datetime
 ## Import Modules
 import SCA_Web_Scraper_Module_1_Scraper as scraper_module_1
 import SCA_Web_Scraper_Module_2_Ngram_Generator as scraper_module_2
+import SCA_Web_Scraper_Module_3_Claim_Category_Generator as scraper_module_3
+
 
 
 ### WEB PAGE OBJECTS____________________________________________________________ 
@@ -94,7 +92,7 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
 
     '''
 
-    print('Starting up Scraper...VROOM!...VROOM!', '\n')
+    print('Starting up Scraper...VROOM!@...VROOM!@...', '\n')
 
     # LISTS TO CAPTURE DATA POINTS-------------------------------------
 
@@ -169,7 +167,7 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
             Defendant_list.append(Defendant)
            
         # Scrape Status
-        # ******Note these if statements should be moved to the module
+        # ******Note these if statements should be moved to a module
         Status = scraper_module_1.get_case_status(bsObj)
         if Status == None:
             Case_Status_list.append(None)
@@ -205,14 +203,47 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
         '''
         > Clean & Tokenize text
         > Use a for loop to loop over tokens and identify values within categories. 
-        > Once a match is found, the list object for a given category should be updated and the function should
-          go to the next category. 
+        > Once a match is found, the list object for a given category should be 
+        updated and the function should go to the next category. 
 
         '''
-        
-        Tokenize_clean_text = scraper_module_2.clean_and_tokenize_text(Case_summary)
 
-        print(Tokenize_clean_text, '\n')        
+        IPO_list = []
+
+        # Convert Text to Nograms
+        Nograms_claims_text = scraper_module_2.clean_and_tokenize_text(Case_summary)
+
+        Claim_type_dict = scraper_module_3.Claim_type_dictionary
+
+        '''
+        The below code will loop over each key searching for matches in its values. 
+        Each key constitutes a column in our dataframe and will therefore need to have
+        a separate list object in our code.  For each key, after iterating the text
+        our code will update the list with a 0/1 and then go to the next list. 
+
+        So, the for loop is over each token in the text AND the embedded loop
+            is over the dictionary.  So once we finish checking each token, 
+            the code will need to progress to the next set of scraping instructions
+            and ultimately to the next page to scrape. 
+
+        '''
+
+
+        # Loop over ngrams
+        for gram in Nograms_claims_text:
+            # Loop over dictionary keys
+            for key in Claim_type_dict:
+                # Search for a match between the gram and the values
+                if gram in Claim_type_dict.values:
+                    # If a match, append 1 to the list associated w/ our key and break
+                    key+_list.append(1)
+                    break
+                    # Else, and after iterating the text, append a 0
+                else:
+                    key+_list.append(0)
+
+            
+
 
         # COMPANY SECTION-------------------------------------------------_
         
