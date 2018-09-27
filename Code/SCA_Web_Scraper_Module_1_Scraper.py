@@ -75,14 +75,20 @@ def get_title(Url):
 def get_case_status(Obj):   
     # Scrape Only News Article Links
     Tags = Obj.find('section', {'id':'summary'})
-    Status = Tags.find('p').get_text()
-    return Status
+    if Tags != None:
+        Status = Tags.find('p').get_text()
+        return Status
+    else:
+        return 'Status Not Found'
 
 def get_defendant(Obj):
     # Scrape Only News Article Links
     Tags = Obj.find('section', {'id':'summary'})
-    Defendant = Tags.find('h4').get_text().replace('Securities Litigation', '')
-    return Defendant
+    if Tags != None:
+        Defendant = Tags.find('h4').get_text().replace('Securities Litigation', '')
+        return Defendant
+    else:
+        return 'No Defendant Found'
 
 def get_filing_date(Obj):
     # Limit to the summary section
@@ -198,11 +204,16 @@ def get_referenced_complaint_data_points(Obj,data_point):
     First_identified_complaint = Obj.find('section', {'id':'ref'})
     # Check to see if search came up with a null value. 
     if First_identified_complaint == None:
-        return None
+        if data_point == 'Date Filed' or data_point == 'Class Period Start' or data_point == 'Class Period End':
+            return '11/11/1111'
+        else:
+            return 'Value_Not_Found'
+
     # Otherwise, proceed with scraping. 
     else:
         Complaint_data_points = First_identified_complaint.findAll('div', {'class':'span4'})
-    # Once you obtain the list of values, iterate over the list to identify each data point. 
+    # Once you obtain the list of values, iterate over the list to identify each data point.
+
     for data in Complaint_data_points:
         if data_point == 'Court':
             if 'COURT' in data.get_text():
@@ -222,8 +233,6 @@ def get_referenced_complaint_data_points(Obj,data_point):
         elif data_point == 'Class Period End':
             if 'END' in data.get_text():
                 return data.get_text().split(':')[1]
-        else:
-            return None
 
 
 # DEFENSE COUNSEL AND PLAINTIFF FIRM-------------------------------------------

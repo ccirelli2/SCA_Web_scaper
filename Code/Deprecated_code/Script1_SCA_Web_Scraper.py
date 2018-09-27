@@ -35,15 +35,27 @@ stemmer = PorterStemmer()
 from nltk import corpus
 import nltk
 from datetime import datetime
+import mysql.connector
+
+
 
 
 ### IMPORT MODULES_____________________________________________________________
 import SCA_Web_Scraper_Module_1_Scraper as scraper_module_1
 import SCA_Web_Scraper_Module_2_Ngram_Generator as scraper_module_2
 import SCA_Web_Scraper_Module_3_Claim_Category_Generator as scraper_module_3
+import Module4_Scraper_SQL_functions as scraper_module_4
 
 
-### IMPORT SQL LIBRARIES_______________________________________________________
+### SQL INSTANTIATIONS
+
+mydb = mysql.connector.connect(
+        host="localhost",
+        user="ccirelli2",
+        passwd="Work4starr",
+        database='SCA_SCRAPER'
+        )
+
 
 
 ### WEB PAGE OBJECTS____________________________________________________________ 
@@ -79,8 +91,19 @@ def loop_over_artilces_test(Url, Start):
         bsObj = BeautifulSoup(html.read(), 'lxml')
     
         # Scrape Data Points
-        data = scraper_module_1.get_plaintiff_firm(bsObj)
-        print(data)
+        #data = scraper_module_1.get_plaintiff_firm(bsObj)
+        data = 'shit_can'
+        
+        page_number = 6 
+        
+        scraper_module_4.insert_function_2(mydb, 
+                                            action = 'update_value', 
+                                            row_number = page_number, 
+                                            obj_name = 'defendant_name', 
+                                            data_obj = data)
+                
+
+
     return None
 
 #loop_over_artilces_test(Url, First_minus_one)
@@ -95,6 +118,16 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
     '''
 
     print('Starting up Scraper...VROOM!@...VROOM!@...', '\n')
+
+
+    # DELETE ROWS IN SQL TABLE FROM LAST ITERATION
+
+    mycursor = mydb.cursor()
+    sql = "DELETE FROM SCA_data WHERE page_number > 0"
+    mycursor.execute(sql)
+    mydb.commit()
+
+
 
     # LISTS TO CAPTURE DATA POINTS-------------------------------------
 
@@ -165,17 +198,41 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
         bsObj = BeautifulSoup(html.read(), 'lxml')
 
         # SUMMARY SECTION----------------------------------------------
+        
+            
+        '''Note:  Here I add a conditional statement that if there is no defendant name, to 
+                  essentially skip all the remaining code and go to the next page. 
+                  The assumption is that the page is blank and this will speed up the scraping
+                  process as well as alleviate issues with teh code.'''
 
         # Scrape Defendant Value
         Defendant = scraper_module_1.get_defendant(bsObj)
+        
+        '''Note:  Here I add a conditional statement that if there is no defendant name, to 
+                  essentially skip all the remaining code and go to the next page. 
+                  The assumption is that the page is blank and this will speed up the scraping
+                  process as well as alleviate issues with teh code.'''
+
         if Defendant == None:
            Defendant_list.append(None) 
         else:
             Defendant_list.append(Defendant)
-           
+        
+
+
+        # SQL Commit - Defendant Name
+        if Defendant != None:
+            scraper_module_4.insert_function_2(mydb, 
+                                            action = 'create_row', 
+                                            row_number = Count, 
+                                            obj_name = 'defendant_name', 
+                                            data_obj = Defendant)
+
+
+
         # Scrape Status
-        # ******Note these if statements should be moved to a module
         Status = scraper_module_1.get_case_status(bsObj)
+        
         if Status == None:
             Case_Status_list.append(None)
         elif 'DISMISSED' in Status:
@@ -185,13 +242,31 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
         else:
             Case_Status_list.append('Unknown')
 
+        # SQL Commit - Case Status
+        
+        if 'DISMISSED' in Status:
+            scraper_module_4.insert_function_2(mydb, action = 'update',row_number = Count, 
+                                            obj_name = 'case_status', data_obj = 'Dismissed')
+        elif 'SETTLED' in Status:
+            scraper_module_4.insert_function_2(mydb, action = 'update',row_number = Count,
+                                            obj_name = 'case_status', data_obj = 'Settled')
+                                            
+
         # Scrape Filing Date
         Filing_date = scraper_module_1.get_filing_date(bsObj)
+        Filing_date_dt_obj = datetime.strptime(Filing_date, ' %B %d, %Y')
         if Filing_date == None:
             Filing_date.append(None)
         else:
             Filing_date_list.append(Filing_date)
-      
+     
+        # SQL Commit - Filing Date
+        if len(Filing_date) < 1:
+            scraper_module_4.insert_function_2(mydb, action = 'update',row_number = Count,
+                                            obj_name = 'filling_date', 
+                                            data_obj = Filing_date_dt_obj)
+
+
         # Scrape Close Date
         Close_date = scraper_module_1.get_close_date(bsObj)
         if Close_date == None:
@@ -396,7 +471,7 @@ def SCA_data_scraper(Url, Start, Write_to_excel):
 
 
 # Execute Code
-SCA_data_scraper(Url, Beginning_page, True)  
+SCA_data_scraper(Url, Beginning_page, False)  
 
 
 

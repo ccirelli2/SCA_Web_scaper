@@ -21,10 +21,10 @@ Claim_type_dictionary = {
         'IPO':              [('initial', 'public'), ('public', 'offering'), 
                              ('registration', 'statement'), ('alleges', 'prospectus'), 
                              ('ipo', 'exchange'), ('prospectus', 'materially'), 
-                             ('prospectus', 'prospectus'), ('prospectus', 'sec')
+                             ('prospectus', 'prospectus'), ('prospectus', 'sec'),
                              ('incorporated', 'prospectus'), ('ipo', 'connection'), 
                              ('regarding', 'ipos')], 
-        'Secondary_offering':[('secondary', 'offering')],
+        'Secondary_Offering':[('secondary', 'offering')],
         'Bankruptcy':       [('bankruptcy', 'court'), ('bankruptcy', 'code'), 
                              ('states', 'bankruptcy'), ('filed', 'bankruptcy')],
         # Allegations Mentioned
@@ -39,7 +39,7 @@ Claim_type_dictionary = {
         'Accounting':       [('accounting', 'principles'), ('improper', 'accounting'), 
                              ('restate', 'financial')],
         'Conflicts_Interest':[('conflicts', 'interest')], 
-        'Corporate_Gov':    [('corporate', 'governance')],
+        'Corporate_Governance':    [('corporate', 'governance')],
         # Fillings Referenced
         '10Q_Filling':      [('form', '10-q'), ('10-q', 'quarterly')], 
         '10K_Filling':      [('form', '10-k'), ('10-k', 'fiscal')],
@@ -52,8 +52,8 @@ Claim_type_dictionary = {
         'Customers':        [('customers', 'agree'), ('agreement', 'customers')], 
         # Financial Metrics Mentioned
         'Net_Income':       [('net', 'income'), ('income', 'earnings')], 
-        'Revenue_Rec':      [('revenue', 'recognition')]
-        'Cash_Flow':        [('cash', 'flow')],,
+        'Revenue_Rec':      [('revenue', 'recognition')],
+        'Cash_Flow':        [('cash', 'flow')],
         # Consequences Mentioned
         'Stock_Drop':       [('stock', 'dropped')],
         'Heavy_trading':     [('heavy', 'trading')]
@@ -63,7 +63,7 @@ Claim_type_dictionary = {
                         
                         
                         
-def determine_inter_list_to_append(key, text, dict_obj, List1, List2):
+def get_match(key, text, dict_obj):
     '''Purpose
     The purpose of this script is to determine which is to be updated based on the 
     key with which we are currently checking to see if there is a match.
@@ -72,22 +72,29 @@ def determine_inter_list_to_append(key, text, dict_obj, List1, List2):
                     List1-n match is whether or not there was a match found, which determines if
                     we appenda 0 or 1. 
     '''
+    
+    Inter_list = []
+    match = ''
+
     # Iterate the list of ngrams    
-    for gram in text:
+    for Ngram in text:
+    
     # Search for a match between the gram and the values
-        if gram in dict_obj[key]:
+        if Ngram in dict_obj[key]:
         # If a match, append 1 to the list associated w/ our key and break
-            if key == 'IPO':
-                List1.append(1)
-            elif key == '10b5':
-                List2.append(1)
-        # If no match was found, append a 0
-        else:
-            if key == 'IPO':
-                List1.append(0)
-            elif key == '10b5':
-                List2.append(0)
-    return None       
+            Inter_list.append(1)
+    
+    
+    if sum(Inter_list) > 0:
+        match = 1
+    else:
+        match = 0
+    
+    return match     
+
+
+
+
 
 
 def determine_primary_list_to_append(Inter_list_1, Inter_list_2, Primary_list_1, Primary_list_2):

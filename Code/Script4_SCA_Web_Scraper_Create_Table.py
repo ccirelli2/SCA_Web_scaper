@@ -93,7 +93,7 @@ mycursor.execute('''CREATE TABLE SCA_data(
                     Date_Filed                  DATE, 
                     Class_Period_Start          DATE, 
                     Class_Period_End            DATE, 
-                    Plaintiff_firm              VARCHAR(25),
+                    Plaintiff_firm              VARCHAR(2225),
                     PRIMARY KEY (page_number)
 
                                             )''')
