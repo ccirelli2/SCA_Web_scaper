@@ -56,7 +56,7 @@ Claim_type_dictionary = {
         'Cash_Flow':        [('cash', 'flow')],,
         # Consequences Mentioned
         'Stock_Drop':       [('stock', 'dropped')],
-        'Heavy_traing':     [('heavy', 'trading')],
+        'Heavy_trading':     [('heavy', 'trading')]
         
         
                             }

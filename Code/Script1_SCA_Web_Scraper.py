@@ -23,7 +23,7 @@ Class Action Web page and convert it to structured data for ML training.
 
 '''
 
-## Import Libraries
+### IMPORT LIBRARIES___________________________________________________________
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -37,11 +37,13 @@ import nltk
 from datetime import datetime
 
 
-## Import Modules
+### IMPORT MODULES_____________________________________________________________
 import SCA_Web_Scraper_Module_1_Scraper as scraper_module_1
 import SCA_Web_Scraper_Module_2_Ngram_Generator as scraper_module_2
 import SCA_Web_Scraper_Module_3_Claim_Category_Generator as scraper_module_3
 
+
+### IMPORT SQL LIBRARIES_______________________________________________________
 
 
 ### WEB PAGE OBJECTS____________________________________________________________ 
