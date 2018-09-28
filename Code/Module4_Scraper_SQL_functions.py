@@ -16,7 +16,7 @@ def insert_function_2(mydb, action,
 
     if action == 'create_row':
 
-        sql_command = "INSERT INTO SCA_data (page_number, defendant_address) VALUES (%s,%s)"
+        sql_command = "INSERT INTO SCA_data (page_number, defendant_name) VALUES (%s,%s)"
         val = (row_number, data_obj)
         mycursor.execute(sql_command, val)
         mydb.commit()

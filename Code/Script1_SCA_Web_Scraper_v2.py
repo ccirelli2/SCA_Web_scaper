@@ -129,7 +129,7 @@ def SCA_data_scraper(Url, Start):
     # Create a range over which to iterate the loop. 
     upper_bound = End_page - Beginning_page
     range_value = range(0, upper_bound)
-    test_upper_bound = 100
+    test_upper_bound = 1000
     test_range_value = range(0,test_upper_bound)
 
     # Start Loop 
@@ -223,7 +223,7 @@ def SCA_data_scraper(Url, Start):
             # Judge
             Judge = scraper_module_1.get_first_complaint_data_points(bsObj, 'Judge')
             scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
-                                            obj_name ='Judge', data_obj = Judge)
+                    obj_name ='Judge', data_obj = Judge[:10])
             # Date Filed
             Date_filed = scraper_module_1.get_first_complaint_data_points(bsObj, 'Date Filed')
             Date_filed_date_obj = datetime.strptime(Filing_date, ' %B %d, %Y')
@@ -258,23 +258,52 @@ def SCA_data_scraper(Url, Start):
                                             obj_name ='Ref_docket',
                                             data_obj = Ref_docket)
             # Judge
-            Ref_judge = scraper_module_1.get_referenced_complaint_data_points(bsObj, 'Judge')
-            scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+            try:
+                Ref_judge = scraper_module_1.get_referenced_complaint_data_points(bsObj, 'Judge')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
                                             obj_name ='Ref_judge',
-                                            data_obj = Ref_judge)    
+                                            data_obj = Ref_judge)
+            except mysql.connector.errors.ProgrammingError:
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+                                            obj_name ='Ref_judge',
+                                            data_obj = 'No_judge_found')
+                
+                
             # Date Filed
-            Ref_date_filed = scraper_module_1.get_referenced_complaint_data_points(bsObj, 'Date Filed')
-            Ref_date_filed_date_obj = datetime.strptime(Ref_date_filed, ' %m/%d/%Y')
-            scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+            try:
+                Ref_date_filed = scraper_module_1.get_referenced_complaint_data_points(bsObj, 'Date Filed')
+                Ref_date_filed_date_obj = datetime.strptime(Ref_date_filed, ' %m/%d/%Y')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+                                            obj_name ='Ref_date_filed',
+                                            data_obj = Ref_date_filed_date_obj)
+            except TypeError:
+                Ref_date_filed = ' 01/01/1900'
+                Ref_date_filed_date_obj = datetime.strptime(Ref_date_filed, ' %m/%d/%Y')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
                                             obj_name ='Ref_date_filed',
                                             data_obj = Ref_date_filed_date_obj)
             # Class Period Start
-            Ref_class_period_start = scraper_module_1.get_referenced_complaint_data_points(bsObj, 
+            try:
+                Ref_class_period_start = scraper_module_1.get_referenced_complaint_data_points(bsObj, 
                                                                                     'Class Period Start')
-            Ref_class_period_start_date_obj = datetime.strptime(Ref_class_period_start, ' %m/%d/%Y')
-            scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+                Ref_class_period_start_date_obj = datetime.strptime(Ref_class_period_start, ' %m/%d/%Y')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+                                            obj_name ='Ref_class_period_start',
+                                            data_obj = Ref_class_period_start_date_obj)            
+            except TypeError:
+                Ref_class_period_start = ' 01/01/1900'
+                Ref_class_period_start_date_obj = datetime.strptime(Ref_class_period_start, ' %m/%d/%Y')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
                                             obj_name ='Ref_class_period_start',
                                             data_obj = Ref_class_period_start_date_obj)
+            except ValueError:
+                Ref_class_period_start = ' 01/01/1900'
+                Ref_class_period_start_date_obj = datetime.strptime(Ref_class_period_start, ' %m/%d/%Y')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+                                            obj_name ='Ref_class_period_start',
+                                            data_obj = Ref_class_period_start_date_obj)
+
+
             # Class Period End
             Ref_class_period_end = scraper_module_1.get_referenced_complaint_data_points(bsObj, 
                                                                                     'Class Period End')
@@ -309,19 +338,6 @@ def SCA_data_scraper(Url, Start):
             
             # Convert Text to Nograms
             Ngrams_claims_text = scraper_module_2.get_Ngrams(Tokenized_text, 'Bigrams')
-
-            '''
-            The below code will loop over each key searching for matches in its values. 
-            Each key constitutes a column in our dataframe and will therefore need to have
-            a separate list object in our code.  For each key, after iterating the text
-            our code will update the list with a 0/1 and then go to the next list. 
-
-            So, the for loop is over each token in the text AND the embedded loop
-            is over the dictionary.  So once we finish checking each token, 
-            the code will need to progress to the next set of scraping instructions
-            and ultimately to the next page to scrape. 
-            '''
-
             
             # Import Claim Type Object
             Claim_type_dict = scraper_module_3.Claim_type_dictionary

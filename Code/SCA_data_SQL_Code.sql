@@ -3,6 +3,9 @@
 -- WHERE page_number = 2;
 -- 
 
+ALTER TABLE SCA_data
+MODIFY COLUMN 1934_Exchange_Act smallint;
+
 -- 
 -- ALTER TABLE SCA_data
 -- MODIFY COLUMN 1933_Act	smallint, 
@@ -36,4 +39,9 @@
 -- ADD Ref_class_period_start	DATE, 
 -- ADD Ref_class_period_end	DATE;  
 -- 
--- SELECT * FROM SCA_data;
+SELECT * FROM SCA_data;
+
+
+
+
+

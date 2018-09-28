@@ -41,8 +41,12 @@ def progress_recorder(Count_obj, range_value_obj):
         Count_obj:  This is the current count of the for loop, i.e. the current count of the number of pages scraped.  
         range_value_obj: This represents the integer value of the last page of the web page minus the first, so the total number of pages to scrape.       
     '''
-    if Count_obj == round(range_value_obj * 0.1,0):
-         print('10% Complete')
+    if Count_obj == round(range_value_obj * 0.05, 0):
+        print('5% Completed')
+    elif Count_obj == round(range_value_obj * 0.1,0):
+        print('10% Complete')
+    elif Count_obj == round(range_value_obj * 0.15,0):
+        print('15% Completed')
     elif Count_obj == round(range_value_obj * 0.2,0):
         print('20% Complete')
     elif Count_obj == round(range_value_obj * 0.3,0):
@@ -202,37 +206,29 @@ def get_referenced_complaint_data_points(Obj,data_point):
         Court, Docket, Judge, Date Filed, Class Period Start, Class Period End'''
 
     First_identified_complaint = Obj.find('section', {'id':'ref'})
-    # Check to see if search came up with a null value. 
-    if First_identified_complaint == None:
-        if data_point == 'Date Filed' or data_point == 'Class Period Start' or data_point == 'Class Period End':
-            return '11/11/1111'
-        else:
-            return 'Value_Not_Found'
 
-    # Otherwise, proceed with scraping. 
-    else:
+    if First_identified_complaint != None:
         Complaint_data_points = First_identified_complaint.findAll('div', {'class':'span4'})
-    # Once you obtain the list of values, iterate over the list to identify each data point.
-
-    for data in Complaint_data_points:
-        if data_point == 'Court':
-            if 'COURT' in data.get_text():
-                return data.get_text().split(':')[1]
-        elif data_point == 'Docket':
-            if 'DOCKET' in data.get_text():
-                return data.get_text().split(':')[1]
-        elif data_point == 'Judge':
-            if 'JUDGE' in data.get_text():
-                return data.get_text().split(':')[1]
-        elif data_point == 'Date Filed':
-            if 'DATE' in data.get_text():
-                return data.get_text().split(':')[1]
-        elif data_point == 'Class Period Start':
-            if 'START' in data.get_text():
-                return data.get_text().split(':')[1]
-        elif data_point == 'Class Period End':
-            if 'END' in data.get_text():
-                return data.get_text().split(':')[1]
+        # Once you obtain the list of values, iterate over the list to identify each data point.
+        for data in Complaint_data_points:
+            if data_point == 'Court':
+                if 'COURT' in data.get_text():
+                    return data.get_text().split(':')[1]
+            elif data_point == 'Docket':
+                if 'DOCKET' in data.get_text():
+                    return data.get_text().split(':')[1]
+            elif data_point == 'Judge':
+                if 'JUDGE' in data.get_text():
+                    return data.get_text().split(':')[1]
+            elif data_point == 'Date Filed':
+                if 'DATE' in data.get_text():
+                    return data.get_text().split(':')[1]
+            elif data_point == 'Class Period Start':
+                if 'START' in data.get_text():
+                    return data.get_text().split(':')[1]
+            elif data_point == 'Class Period End':
+                if 'END' in data.get_text():
+                    return data.get_text().split(':')[1]
 
 
 # DEFENSE COUNSEL AND PLAINTIFF FIRM-------------------------------------------
