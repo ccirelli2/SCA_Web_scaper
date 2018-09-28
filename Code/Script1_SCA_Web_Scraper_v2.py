@@ -38,8 +38,6 @@ from datetime import datetime
 import mysql.connector
 
 
-
-
 ### IMPORT MODULES_____________________________________________________________
 import SCA_Web_Scraper_Module_1_Scraper as scraper_module_1
 import SCA_Web_Scraper_Module_2_Ngram_Generator as scraper_module_2
@@ -56,7 +54,6 @@ mydb = mysql.connector.connect(
         )
 
 
-
 ### WEB PAGE OBJECTS____________________________________________________________ 
 '''Structure Web Page List of Cases
 Root =              http://securities.stanford.edu/
@@ -68,46 +65,14 @@ Specific Cases =    filings-case.html?id=106716
 Url = 'http://securities.stanford.edu/filings-case.html?id='
 
 Beginning_page = 101000 
-End_page =  10672
+End_page =  106720
 First_minus_one= 101473
 Test_end_page = 101010       # Used for testing code, = 10 iterations
 
 
-## PETRI DISH SECTION___________________________________________________________
-'''Test code before adding to scaper'''
-# Get Titles From Range of Articles
-def loop_over_artilces_test(Url, Start):  
-    
-    # Create Lists to Capture values
-    Defendant_list = []
-
-    # Loop over article range
-    for x in range(0,1):
-        Start +=1
-    
-        # Create Beautiful Soup Object per article
-        html = urlopen(Url + str(Start))
-        bsObj = BeautifulSoup(html.read(), 'lxml')
-    
-        # Scrape Data Points
-        #data = scraper_module_1.get_plaintiff_firm(bsObj)
-        data = 'shit_can'
-        
-        page_number = 6 
-        
-        scraper_module_4.insert_function_2(mydb, 
-                                            action = 'update_value', 
-                                            row_number = page_number, 
-                                            obj_name = 'defendant_name', 
-                                            data_obj = data)
-                
-    return None
-
-#loop_over_artilces_test(Url, First_minus_one)
 
 
-
-## SCRAPER_______________________________________________________________________
+### SCRAPER_______________________________________________________________________
 
 def SCA_data_scraper(Url, Start):  
     '''Inputs'''
@@ -133,7 +98,7 @@ def SCA_data_scraper(Url, Start):
     test_range_value = range(0,test_upper_bound)
 
     # Start Loop 
-    for x in test_range_value:
+    for x in range_value:
         
         # First Page to Start Iteration
         Start +=1
@@ -326,12 +291,11 @@ def SCA_data_scraper(Url, Start):
             # SQL Commit - Case Summary
             '''Note, presently we are unable to store the entire text summary'''
             
-            
+                        
             Case_summary = scraper_module_1.get_case_summary(bsObj)
             '''
             scraper_module_4.insert_function_2(mydb, action = 'update',row_number = Count,
-                                            obj_name = 'case_summary', data_obj = Case_summary[15:115])
-       
+                                            obj_name = 'case_summary', data_obj = Case_summary)
             '''
             # Tokenize Text
             Tokenized_text = scraper_module_2.clean_and_tokenize_text(Case_summary)

@@ -13,7 +13,7 @@ Functions   Below are the functions found in this module
 
 Claim_type_dictionary = {
         # Statutes Referenced
-        '1934_Exchange_Act':[('1934', 'rule'), ('1934', 'exchange')],
+        '1934_Exchange_Act':[('1934', 'rule'), ('1934', 'exchange'), ('exchange', 'act')],
         '1933_Act':         [('act', '1933'), ('1933', 'section')],
         '10b5':             [('rule', '10b-5'), ('10b-5', 'promulgated')],
         'Derivative':       [('shareholder', 'derivative'), ('derivative', 'action')],
@@ -27,19 +27,24 @@ Claim_type_dictionary = {
         'Secondary_Offering':[('secondary', 'offering')],
         'Bankruptcy':       [('bankruptcy', 'court'), ('bankruptcy', 'code'), 
                              ('states', 'bankruptcy'), ('filed', 'bankruptcy')],
+        'Merger':           [('plan', 'merger'), ('merger', 'consideration')],
         # Allegations Mentioned
         'False_misleading': [('false', 'misleading'), ('misleading', 'statements'), 
                              ('artificially', 'inflated'), ('misleading', 'failed'), 
                              ('material', 'misrepresentations'), ('artificially', 'inflating'), 
                              ('misrepresentations', 'market'), ('misrepresented', 'following'), 
-                             ('materially', 'overstated')],
+                             ('materially', 'overstated'), ('materially', 'false')],
         'Failed_disclose':  [('failed', 'disclose'), ('disclose', 'material')], 
         'Commissions':      [('undisclosed', 'commissions'), ('commissions', 'certain')],
         'Fees':             [('fees', 'reimbursement'), ('fees', 'expenses')],
         'Accounting':       [('accounting', 'principles'), ('improper', 'accounting'), 
-                             ('restate', 'financial')],
+                             ('restate', 'financial'), ('accepted', 'accounting')],
         'Conflicts_Interest':[('conflicts', 'interest')], 
         'Corporate_Governance':    [('corporate', 'governance')],
+        'Related_parties':  [('related', 'parties'), ('related', 'party')],
+        'Sexual_Misconduct':[('sexual', 'misconduct'), ('sexual', 'harrassment')],
+        'Proxy_violation':  [('misleading', 'proxy')],
+        'Breach_Fiduciary_Duties':[('breach', 'fiduciary'), ('fiduciary', 'duties')],
         # Fillings Referenced
         '10Q_Filling':      [('form', '10-q'), ('10-q', 'quarterly')], 
         '10K_Filling':      [('form', '10-k'), ('10-k', 'fiscal')],
