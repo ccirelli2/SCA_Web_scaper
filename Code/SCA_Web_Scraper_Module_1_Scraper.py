@@ -47,24 +47,29 @@ def progress_recorder(Count_obj, range_value_obj):
         print('10% Complete')
     elif Count_obj == round(range_value_obj * 0.15,0):
         print('15% Completed')
-    elif Count_obj == round(range_value_obj * 0.2,0):
+    elif Count_obj == round(range_value_obj * 0.20,0):
         print('20% Complete')
+    elif Count_obj == round(range_value_obj * 0.25,0):
+        print('25% Completed')
     elif Count_obj == round(range_value_obj * 0.3,0):
-        print('30% Complete')
+        print('30% Completed')
+    elif Count_obj == round(range_value_obj * 0.35,0):
+        print('35% Completed')
     elif Count_obj == round(range_value_obj * 0.4,0):
-        print('40% Complete')
+        print('40% Completed')
     elif Count_obj == round(range_value_obj * 0.5,0):
-        print('50% Complete')
+        print('50% Completed')
     elif Count_obj == round(range_value_obj * 0.6,0):
-        print('60% Complete')
+        print('60% Completed')
     elif Count_obj == round(range_value_obj * 0.7,0):
-        print('70% Complete')
+        print('70% Completed')
     elif Count_obj == round(range_value_obj * 0.8,0):
-        print('80% Complete')
+        print('80% Completed')
     elif Count_obj == round(range_value_obj * 0.9,0):
-        print('90% Complete')
+        print('90% Completed')
     elif Count_obj == round(range_value_obj * 1.0,0):
-        print('Scraping Completed!')
+        print('RRRRRR!!!!!!.......Scraping 100% Complete!!')
+        print('Ok to proceed to the next job!')
     return None        
 
 
@@ -87,9 +92,11 @@ def get_case_status(Obj):
 
 def get_defendant(Obj):
     # Scrape Only News Article Links
-    Tags = Obj.find('section', {'id':'summary'})
-    if Tags != None:
-        Defendant = Tags.find('h4').get_text().replace('Securities Litigation', '')
+    Tags = Obj.find('section', {'id':'company'})
+    # Check if tag text is blank. 
+    H4 = Tags.find('h4').get_text()
+    Defendant = H4.split(':')[1]
+    if Defendant != None:
         return Defendant
     else:
         return 'No Defendant Found'

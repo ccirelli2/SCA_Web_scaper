@@ -64,63 +64,88 @@ Specific Cases =    filings-case.html?id=106716
 '''
 Url = 'http://securities.stanford.edu/filings-case.html?id='
 
-Beginning_page = 101000 
-End_page =  106720
-First_minus_one= 101473
-Test_end_page = 101010       # Used for testing code, = 10 iterations
 
 
+# SCRAPER_______________________________________________________________________
 
+def SCA_data_scraper(Url, Delete_prior_run= False):  
 
-### SCRAPER_______________________________________________________________________
-
-def SCA_data_scraper(Url, Start):  
-    '''Inputs'''
-
+    # START SCRAPER
     print('Starting up Scraper...VROOM!@...VROOM!@...', '\n')
 
-    # DELETE ROWS IN SQL TABLE FROM LAST ITERATION
-    mycursor = mydb.cursor()
-    sql = "DELETE FROM SCA_data WHERE page_number > 0"
-    mycursor.execute(sql)
-    mydb.commit()
-  
+    # Count Objects
+    Last_count = 500 
+    Beginning_page = (100000+Last_count)
+    End_page =  106750
+   
+    # Delete rows in sql db from last iteration or start from Last_count
+    if Delete_prior_run == True:
+        mycursor = mydb.cursor()
+        sql = "DELETE FROM SCA_data WHERE page_number > 0"
+        mycursor.execute(sql)
+        mydb.commit()
+    elif Delete_prior_run == False:
+        # Run the following script to change the value associated with last count
+        mycursor = mydb.cursor()
+        sql = "SELECT max(page_number) FROM SCA_data"
+        mycursor.execute(sql)
+        myresult = mycursor.fetchall()
+        if myresult[0][0] < 6750:
+            print('scraper starting at page ', myresult[0][0])
+            Last_count = myresult[0][0]
 
     # Article Counter
-    Count = 0
+    Count = Last_count
 
     # START LOOP OVER ARTICLES_________________________________________________
-    
+   
+    '''Automation
+    - We need to query our database and sort the table based on the page number. 
+    - Then take the page number with the highest value. 
+    - Add it to our Beginning page. 
+    - Then check to see if the page is blank.  
+    - We might want to add a while loop that continues the scraping until the page is determined
+      to be blank. 
+    - Then an update should go out with the values that were scraped for that date. So we'll need
+      to add a date object that captures the date-time on which the data was scraped. 
+    - Then add a condition that states that if the data was generated today() send an email with 
+      the information.   
+    '''
+
     # Create a range over which to iterate the loop. 
     upper_bound = End_page - Beginning_page
     range_value = range(0, upper_bound)
-    test_upper_bound = 1000
-    test_range_value = range(0,test_upper_bound)
-
+    
     # Start Loop 
     for x in range_value:
         
-        # First Page to Start Iteration
-        Start +=1
-         
         # Progress Recorder
         Count +=1       
-        scraper_module_1.progress_recorder(Count, test_upper_bound)          
+        
+        scraper_module_1.progress_recorder(Count, upper_bound)          
 
         # Create Beautiful Soup Object per article
-        html = urlopen(Url + str(Start))
+        html = urlopen(Url + str(Beginning_page + Count))
         bsObj = BeautifulSoup(html.read(), 'lxml')
 
-
+        # Check to See if Page is Blank       
+        Tags = bsObj.find('section', {'id':'company'})
+        Defendant = Tags.find('h4').get_text().split(':')[1]
+        regex_exp = re.compile(' *[A-Z]+')
+        search = re.search(regex_exp, Defendant)
+        '''
+        print('Defendant', Defendant, '\n')
+        print(search)
+        print(bool(search))
+        print('Page Number', Beginning_page+Count)
+        '''
+        # ENTER LOOP ONLY IF DEFENDANT NAME FOUND 
+        if bool(search) is True:
+                
         # SUMMARY SECTION----------------------------------------------        
-
-        # Scrape Defendant Value
-        Defendant = scraper_module_1.get_defendant(bsObj)
-        
-        # Skip those pages for which the Defendant value == None       
-        if Defendant != None and len(Defendant) > 1:
-
+       
             # SQL Commit - Defendant Name
+            Defendant = scraper_module_1.get_defendant(bsObj)
             scraper_module_4.insert_function_2(mydb, action = 'create_row', row_number = Count,
                                             obj_name = 'defendant_name', data_obj = Defendant)
      
@@ -134,9 +159,15 @@ def SCA_data_scraper(Url, Start):
                                             obj_name = 'case_status', data_obj = 'Settled')
                                             
             # SQL Commit - Filing Date
-            Filing_date = scraper_module_1.get_filing_date(bsObj)
-            Filing_date_date_obj = datetime.strptime(Filing_date, ' %B %d, %Y')    
-            scraper_module_4.insert_function_2(mydb, action = 'update',row_number = Count,
+            try:
+                Filing_date = scraper_module_1.get_filing_date(bsObj)
+                Filing_date_date_obj = datetime.strptime(Filing_date, ' %B %d, %Y')    
+                scraper_module_4.insert_function_2(mydb, action = 'update',row_number = Count,
+                                            obj_name = 'filling_date', data_obj = Filing_date_date_obj)
+            except ValueError:
+                Filing_date = 'January 01, 1900'
+                Filing_date_date_obj = datetime.strptime(Filing_date, '%B %d, %Y')
+                scraper_module_4.insert_function_2(mydb, action = 'update',row_number = Count,
                                             obj_name = 'filling_date', data_obj = Filing_date_date_obj)
 
 
@@ -191,23 +222,40 @@ def SCA_data_scraper(Url, Start):
                     obj_name ='Judge', data_obj = Judge[:10])
             # Date Filed
             Date_filed = scraper_module_1.get_first_complaint_data_points(bsObj, 'Date Filed')
-            Date_filed_date_obj = datetime.strptime(Filing_date, ' %B %d, %Y')
+            Date_filed_date_obj = datetime.strptime(Date_filed, ' %m/%d/%Y')
             scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
                                             obj_name ='Date_filed', data_obj = Date_filed_date_obj)
 
             # Class Period Start
-            Class_period_start = scraper_module_1.get_first_complaint_data_points(bsObj, 
+            try:
+                Class_period_start = scraper_module_1.get_first_complaint_data_points(bsObj, 
                                                                             'Class Period Start')
-            Class_period_start_date_object = datetime.strptime(Filing_date, ' %B %d, %Y')
-            scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+                Class_period_start_date_object = datetime.strptime(Class_period_start, ' %m/%d/%Y')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
                                             obj_name ='Class_Period_Start', 
-                                            data_obj = Class_period_start_date_object) 
+                                            data_obj = Class_period_start_date_object)
+            except ValueError:
+                Class_period_start = ' 01/01/1900'
+                Class_period_start_date_object = datetime.strptime(Class_period_start, ' %m/%d/%Y')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+                                             obj_name ='Class_Period_Start',
+                                             data_obj = Class_period_start_date_object)
+
+
+
             # Class Period End
-            Class_period_end = scraper_module_1.get_first_complaint_data_points(bsObj, 'Class Period End')
-            Class_period_end_date_object = datetime.strptime(Filing_date, ' %B %d, %Y')
-            scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+            try:
+                Class_period_end = scraper_module_1.get_first_complaint_data_points(bsObj, 'Class Period End')
+                Class_period_end_date_object = datetime.strptime(Class_period_end, ' %m/%d/%Y')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
                                             obj_name ='Class_Period_End',
                                             data_obj = Class_period_end_date_object)
+            except ValueError:
+                Class_period_end = ' 01/01/1900'
+                Class_period_end_date_object = datetime.strptime(Class_period_end, ' %m/%d/%Y')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+                                             obj_name ='Class_Period_End',
+                                             data_obj = Class_period_end_date_object)
 
         
             # REFERENCED FILED COMPLAINT SECTION---------------------------------------
@@ -270,18 +318,38 @@ def SCA_data_scraper(Url, Start):
 
 
             # Class Period End
-            Ref_class_period_end = scraper_module_1.get_referenced_complaint_data_points(bsObj, 
+            try:
+                Ref_class_period_end = scraper_module_1.get_referenced_complaint_data_points(bsObj, 
                                                                                     'Class Period End')
-            Ref_class_period_end_date_obj = datetime.strptime(Filing_date, ' %B %d, %Y')
-            scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+                Ref_class_period_end_date_obj = datetime.strptime(Ref_class_period_end, ' %m/%d/%Y')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
                                             obj_name ='Ref_class_period_end',
                                             data_obj = Ref_class_period_end_date_obj)
-
+            except TypeError:
+                Ref_class_period_end = ' January 01, 1900'
+                Ref_class_period_end_date_obj = datetime.strptime(Ref_class_period_end, ' %B %d, %Y')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+                                            obj_name ='Ref_class_period_end',
+                                            data_obj = Ref_class_period_end_date_obj)
+           
+            except ValueError:
+                Ref_class_period_end = ' January 01, 1900'
+                Ref_class_period_end_date_obj = datetime.strptime(Ref_class_period_end, ' %B %d, %Y')
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+                                            obj_name ='Ref_class_period_end',
+                                            data_obj = Ref_class_period_end_date_obj)
+            
             # LAW FIRM SECTION---------------------------------------------------------
             '''At a later point add Defense counsel'''
             # Plaintiff Firm
-            Plaintiff_firm = scraper_module_1.get_plaintiff_firm(bsObj)
-            scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+            try:
+                Plaintiff_firm = scraper_module_1.get_plaintiff_firm(bsObj)
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
+                                            obj_name ='Plaintiff_firm',
+                                            data_obj = Plaintiff_firm)
+            except mysql.connector.errors.ProgrammingError:
+                Plaintiff_firm = 'Error'
+                scraper_module_4.insert_function_2(mydb, action='update',row_number=Count,
                                             obj_name ='Plaintiff_firm',
                                             data_obj = Plaintiff_firm)
 
@@ -323,7 +391,7 @@ def SCA_data_scraper(Url, Start):
 
 # RUN FUNCTION
 
-SCA_data_scraper(Url, Beginning_page)
+SCA_data_scraper(Url, False)
 
 
 
