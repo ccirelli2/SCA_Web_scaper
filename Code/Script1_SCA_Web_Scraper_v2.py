@@ -172,11 +172,17 @@ def SCA_data_scraper(Url, Delete_prior_run= False):
 
 
             # SQL Commit - Close Date
-            Close_date = scraper_module_1.get_close_date(bsObj)
-            Close_date_date_obj = datetime.strptime(Close_date, '%m/%d/%Y')    
-            scraper_module_4.insert_function_2(mydb, action = 'update',row_number = Count,
-                                            obj_name = 'close_date', data_obj = Close_date_date_obj)
-            
+            try:
+                Close_date = scraper_module_1.get_close_date(bsObj)
+                Close_date_date_obj = datetime.strptime(Close_date, '%m/%d/%Y')    
+                scraper_module_4.insert_function_2(mydb, action = 'update',row_number = Count,
+                                          obj_name = 'close_date', data_obj = Close_date_date_obj)
+            except TypeError:
+                Close_date = '01/01/1900'
+                Close_date_date_obj = datetime.strptime(Close_date, '%m/%d/%Y')
+                scraper_module_4.insert_function_2(mydb, action = 'update',row_number = Count,
+                                           obj_name = 'close_date', data_obj = Close_date_date_obj)
+
        
             # COMPANY SECTION-------------------------------------------------_
         
