@@ -329,12 +329,25 @@ def create_Ngram_column(dataframe, Ngrams):
 
 
 
+# Concatenate Text Files
+    def create_concat_file(list_files, file_name, dir_data, target_dir):
+        with open(str(file_name), 'w') as f:
+            for doc in list_files:
+                text = open(dir_data + '/' + doc).read()
+                f.write(text)
+
+    return None
 
 
+def get_freq_ngrams(list_ngrams):
+    '''Purpose:  Get the frequency of ngrams'''
+    dict_obj = {}
+    for ngram in list_ngrams:
+        dict_obj[ngram] = dict_obj.get(ngram, 0) +1  
 
+    df = pd.DataFrame(dict_obj, index = ['Count'])
 
-
-
+    return df
 
 
 

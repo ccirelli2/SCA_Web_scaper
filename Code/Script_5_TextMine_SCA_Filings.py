@@ -5,42 +5,61 @@ Mine the actual SCA fillings for key words and phrases to include in our attribu
 
 # Import Libraries
 import os
-os.chdir('/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Code')
 import Module_2_Scraper_CaseSummary as m2
+import pandas as pd
 
-# Objects
+
+# Text Objects
 dir_data = r'/home/ccirelli2/Desktop/Programming/Data_sets/filings_text_legal_team'
 list_files = os.listdir(dir_data)
 target_dir = r'/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Code/SCA_concat_txt_output'
+concatenated_txt_file = open('/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Code/SCA_concat_txt_output/Concat_SCA.txt').read()
+
+# See if we can create average % appearance in each document. 
 
 
+'''How would you get the average representation of each 
+token in each document?
 
-# Concatenate Text Files
+1.) After we have our list of tokens, loop back through each document. 
+    - Loop through each document and add a one to a new dictionary every time
+      the word is found. 
+    - Break once found. 
+    - At the end, divide your values by the total number of documents. 
+    - That will give you the average appearance of those words. 
 
-def create_concat_file(list_files, file_name, dir_data, target_dir):
-    with open(str(file_name), 'w') as f:
-        for doc in list_files:
-            text = open(dir_data + '/' + doc).read()
-            f.write(text)
+'''
+
+
+def pipeline_get_bigram_freq(concatenated_txt_file):
+    # Tokenize & Clean Text
+    print('Cleaning & tokenizing text', '\n')
+    clean_tokenized_text = m2.clean_and_tokenize_text(concatenated_txt_file)
+
+    # Generate Ngrams
+    print('Generating Ngrams List Object', '\n')
+    ngrams = m2.get_Ngrams(clean_tokenized_text, 'Bigrams')
+
+    # Generate Fequency of Ngrams
+    print('Generating frequency of Ngrams', '\n')
+    freq_ngrams = m2.get_freq_ngrams(ngrams)
+    test = freq_ngrams.transpose()
+    ngram_column = m2.create_Ngram_column(test, 'Bigrams')
+    m2.write_to_excel(ngram_column, 'ngrams')
 
     return None
+
+ngram_freq_file = (r'/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Code/SCA_concat_txt_output/ngrams.xlsx')
+
+df_ngrams = pd.read_excel(ngram_freq_file)
+
+print(df_ngrams.loc('Ngrmas'))
+
+'''
+def get_ngram_avg_appear_doc(list_files, dir_data):  
     
+    for doc in list_files:
+        txt = open(dir_data + '/' + doc).read()
+        clean_tokenized_text = m2.clean_tokenized_text(       
 
-# Create Clean Tokenized Text
-
-concat_text = open('/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Code/SCA_concat_txt_output/Concat_SCA.txt').read()
-
-clean_tokenized_text = m2.clean_and_tokenize_text(concat_text)
-
-
-ngrams = m2.get_Ngrams(clean_tokenized_text, 'Bigrams')
-
-#ngram_column = m2.create_Ngram_column(ngrams, 'Bigrams')
-
-print(ngrams[:100])
-
-
-'''@@@@@@@@@@  Need to import create_freq_dist_table or db'''
-
-#m2.write_to_excel(ngram_column, 'ngrams')
-
+'''
