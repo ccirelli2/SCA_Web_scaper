@@ -65,6 +65,8 @@ NEXT STEPS:
                     lawsuit and add that to the dataset.   Equally, we could integrate the last earnings
                     call and mine that for sentiment and or key phrases. 
 
+10.)                Replace "Count" object with actually page number.  
+
 '''
 
 
@@ -113,10 +115,15 @@ Url = 'http://securities.stanford.edu/filings-case.html?id='
 
 ### SCRAPER_______________________________________________________________________
 
-def SCA_data_scraper(Url, Run_type = 'Start_from_last_page'):  
+def SCA_data_scraper(Url, add_pages, Run_type = 'Start_from_last_page'):  
     '''Input:
     Run_type:       Two options, Reset or Start_from_last_lage
-    Url:            The web page from which we are scraping data'''
+    Url:            The web page from which we are scraping data
+    add_pages:    Using the 'Start_from_last_page selection, pages_2_add is an additional
+                    page to add to the 'Beginning_page' object.  Sometimes the webpage manager
+                    choses to insert blank pages into the numerical sequence of pages, which
+                    trips up the scraper. 
+    '''
 
     # Count Objects
     '''Establishes the values for where the scraper starts and ends'''
@@ -137,8 +144,8 @@ def SCA_data_scraper(Url, Run_type = 'Start_from_last_page'):
     Purpose:        The purpose of this function is to control how the scraper runs. 
     Run_type        May be Reset or run_from_last_count.
                     If "Reset" the scraper will delete all prior data and start from page 0. 
-                    If run from last, the scraper checks whether the next page is blank, and if not, 
-                    it proceeds to scrape the page. For every iteration of the code in the While loop, 
+                    If "Start_from_last_page", the scraper checks whether the next page is blank, and if not, 
+                    it will proceed to scrape the page. For every iteration of the code in the While loop, 
                     so long as the next page is not null it will continue to scrape subsequent pages.
     '''
     
@@ -201,10 +208,15 @@ def SCA_data_scraper(Url, Run_type = 'Start_from_last_page'):
         # Assume next page equals True
         Next_page_null == True
         
-        # Set Count Objects - Add One Page 
-        Beginning_page  = Last_count + 1
-        End_page        = Beginning_page + 1
-        Count           = Beginning_page
+        # Set Count Objects - Add One Page
+        '''Inputs:
+        First_run_beginning_page:   The first page we started scraping when run_type was set to reset. 
+        Last_page:                  Count of last page scraped in our database. 
+        Beginning_page:             Summation of First run + Last count in our db + 1 + add_pages'''
+        First_run_beginning_page =  100600 
+        Beginning_page  =           First_run_beginning_page + Last_count + 1 + add_pages
+        End_page        =           Beginning_page + 1
+        Count           =           Beginning_page - First_run_beginning_page
   
         # Status
         print('Scraper starting from count {}'.format(Beginning_page))
@@ -212,7 +224,7 @@ def SCA_data_scraper(Url, Run_type = 'Start_from_last_page'):
         # Create Beautiful Soup Object
         search = m5.check_page_blank(Url, Beginning_page)
 
-        # Check to see if page Tage is blank
+        # Check to see if page Tag is blank
         if bool(search) == False:
             # If blank, set Next_page_null to True so that the while loop will not start. 
             Next_page_null = True
@@ -257,7 +269,7 @@ def SCA_data_scraper(Url, Run_type = 'Start_from_last_page'):
 
 
 # RUN FUNCTION
-SCA_data_scraper(Url, 'Reset')
+SCA_data_scraper(Url, 0, 'Reset')
 
 
 

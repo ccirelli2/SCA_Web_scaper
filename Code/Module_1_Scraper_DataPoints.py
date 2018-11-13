@@ -256,7 +256,7 @@ def get_referenced_complaint_data_points(Obj,data_point):
 # DEFENSE COUNSEL AND PLAINTIFF FIRM-------------------------------------------
 
 def get_plaintiff_firm(Obj):
-    Ref_complaint = Obj.find('section', {'id':'ref'})
+    Ref_complaint = Obj.find('section', {'id':'fic'})
     if Ref_complaint != None:
         Container = Ref_complaint.find('ol', {'class':'styled'})
         if Container == None:

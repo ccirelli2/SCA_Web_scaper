@@ -103,7 +103,8 @@ def clean_and_tokenize_text(Text_file):
     Text_strip_2_letter_words = filter(lambda x: len(x)>2, Text_strip_stopWords)
     # Strip names
     Text_strip_names = filter(lambda x: x not in Set_names, Text_strip_2_letter_words)
-
+    # Take Stem of Words
+    #Text_stem = [stemmer.stem(x) for x in Text_strip_names]
     return list(Text_strip_names)
 
 

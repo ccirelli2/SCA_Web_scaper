@@ -13,10 +13,17 @@ Functions   Below are the functions found in this module
 
 Claim_type_dictionary = {
         # Statutes Referenced
-        '1934_Exchange_Act':[('1934', 'rule'), ('1934', 'exchange'), ('exchange', 'act')],
+        '1934_Exchange_Act':[('1934', 'rule'), ('1934', 'exchange'), ('exchange', 'act'), 
+                             ('act', '1934')],
         '1933_Act':         [('act', '1933'), ('1933', 'section')],
         '10b5':             [('rule', '10b-5'), ('10b-5', 'promulgated')],
         'Derivative':       [('shareholder', 'derivative'), ('derivative', 'action')],
+        'class_action':   [('class', 'action'), ('class', 'period'), 
+                             ('class', 'certification')],
+        'ERISA':         [('erisa', 'breach'), ('erisa', 'complaint'), 
+                             ('erisa', 'lawsuit'), ('erisa', 'cases')],
+        'FCPA':          [('act', 'fcpa'), ('fcpa', 'company'), ('violation', 'fcpa')],
+        'SEC_Investigation': [('exchange', 'commission'), ('commission', 'sec')],
         # Transaction Referenced
         'IPO':              [('initial', 'public'), ('public', 'offering'), 
                              ('registration', 'statement'), ('alleges', 'prospectus'), 
@@ -38,17 +45,26 @@ Claim_type_dictionary = {
         'Commissions':      [('undisclosed', 'commissions'), ('commissions', 'certain')],
         'Fees':             [('fees', 'reimbursement'), ('fees', 'expenses')],
         'Accounting':       [('accounting', 'principles'), ('improper', 'accounting'), 
-                             ('restate', 'financial'), ('accepted', 'accounting')],
+                             ('restate', 'financial'), ('accepted', 'accounting'),
+                             ('principles', 'gaap'), ('violation', 'gaap'), 
+                             ('accordance', 'gaap'), ('accounting', 'issues'), 
+                             ('violated', 'gaap'), ('non-gaap', 'financial')],
         'Conflicts_Interest':[('conflicts', 'interest')], 
         'Corporate_Governance':    [('corporate', 'governance')],
         'Related_parties':  [('related', 'parties'), ('related', 'party')],
-        'Sexual_Misconduct':[('sexual', 'misconduct'), ('sexual', 'harrassment')],
+        'Sexual_Misconduct':[('sexual', 'misconduct'), ('sexual', 'harrassment'),
+                            ('claim', 'sexual'), ('sexual', 'abuse'), ('sexual', 'assault')],
         'Proxy_violation':  [('misleading', 'proxy')],
         'Breach_Fiduciary_Duties':[('breach', 'fiduciary'), ('fiduciary', 'duties')],
+        'Data_breach':      [('data', 'breach'), ('data', 'privacy')],
         # Fillings Referenced
         '10Q_Filling':      [('form', '10-q'), ('10-q', 'quarterly')], 
         '10K_Filling':      [('form', '10-k'), ('10-k', 'fiscal')],
         'Press_Release':    [('issued', 'press')],
+        'Proxy':         [('proxy', 'statement'), ('statement', 'proxy'), 
+                             ('alleges', 'proxy'), ('definitive', 'proxy'), 
+                             ('14a', 'proxy'), ('misleading', 'proxy'), ('filed', 'proxy'),
+                             ('proxy', 'filed')],   
         # Quarter Referenced
         'Second_Quarter':   [('second', 'quarter')],
         'Third_Quarter':    [('third', 'quarter')],
@@ -65,8 +81,10 @@ Claim_type_dictionary = {
         
         
                             }
-                        
-                        
+
+
+
+
                         
 def get_match(key, text, dict_obj):
     '''Purpose

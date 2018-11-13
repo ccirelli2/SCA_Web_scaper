@@ -13,7 +13,8 @@ import mysql.connector
 
 import Module_1_Scraper_DataPoints as m1
 import Module_2_Scraper_CaseSummary as m2
-import Module_3_Scraper_Dict as m3
+import Module_3_Dict_Derived_Values as m3
+
 
 
 
@@ -101,13 +102,12 @@ def main_scraper_function(bsObj, mydb, Count):
     try:
         Filing_date = m1.get_filing_date(bsObj)
         Filing_date_date_obj = datetime.strptime(Filing_date, ' %B %d, %Y')
-        year_filed = Filing_date_date_obj.year()
+        year_filed = Filing_date_date_obj.year
         insert_function_2(mydb, action = 'update',row_number = Count,
                                             obj_name = 'YEAR_FILED', data_obj = year_filed)
     except ValueError:
-        Filing_date = 'January 01, 1900'
-        Filing_date_date_obj = datetime.strptime(Filing_date, '%B %d, %Y')
-        year_filed = Filing_date_date_obj.year()
+        Filing_date = '1900'
+        year_filed = Filing_date
         insert_function_2(mydb, action = 'update',row_number = Count,
                           obj_name = 'YEAR_FILED', data_obj = year_filed)
 
@@ -159,9 +159,15 @@ def main_scraper_function(bsObj, mydb, Count):
     insert_function_2(mydb, action='update',row_number=Count,
                       obj_name ='Docket', data_obj = Docket)
     # Judge
-    Judge = m1.get_first_complaint_data_points(bsObj, 'Judge')
-    insert_function_2(mydb, action='update',row_number=Count,
-                      obj_name ='Judge', data_obj = Judge[:10])
+    try:
+        Judge = m1.get_first_complaint_data_points(bsObj, 'Judge')
+        insert_function_2(mydb, action='update',row_number=Count,
+                obj_name ='Judge', data_obj = Judge) 
+    except mysql.connector.Error as err:
+        Judge = 'None'
+        insert_function_2(mydb, action='update',row_number=Count,
+                obj_name ='Judge', data_obj = Judge)
+
     # Date Filed
     Date_filed = m1.get_first_complaint_data_points(bsObj, 'Date Filed')
     Date_filed_date_obj = datetime.strptime(Date_filed, ' %m/%d/%Y')
@@ -273,6 +279,7 @@ def main_scraper_function(bsObj, mydb, Count):
 
     # LAW FIRM SECTION__________________________________________________________________________
     '''At a later point add Defense counsel'''
+    
     # Plaintiff Firm
     try:
         Plaintiff_firm = m1.get_plaintiff_firm(bsObj)
@@ -283,8 +290,20 @@ def main_scraper_function(bsObj, mydb, Count):
         insert_function_2(mydb, action='update',row_number=Count, obj_name ='Plaintiff_firm',
                           data_obj = Plaintiff_firm)
 
-    # CASE SUMMARY SECTION- MINE CLAIMS SUMMARY - GENERATE CLAIMS CATEGORIES____________________
+    # CASE SUMMARY SECTION - DERIVED VALUES_____________________________________________________
+    '''
+    Description:        In this section we mine the case summary on the web page in order to derive
+                        additional attributes about the case that are not provided by the owner
+                        of the web page and have not been converted to structured data. 
+    Process:            1.) For each web page we scrape the case summary.
+                        2.) We then tokenize and clean the text. 
+                        3.) We iterate over that cleaned text and compare each token with a dictionary of 
+                            key attributes.  If a match is found with one of those key attributes, we return 
+                            a one and update the row in our data frame with that value.  
+                            Note:  we iterate through the entire dictionary and use the key to update the 
+                                   mysql database where the column name is the same as the key in our dict. 
 
+    '''
     # SQL Commit - Case Summary
     '''Note, presently we are unable to store the entire text summary'''
 
