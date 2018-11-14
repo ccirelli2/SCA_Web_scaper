@@ -109,7 +109,8 @@ def get_count_all_allegations_by_year_for_dismissed():
             ,COUNT(Proxy)           AS Proxy_count
 
             FROM SCA_data
-            WHERE case_status = 'Dimissed'
+            WHERE case_status = 'Dismissed'
+            AND YEAR_FILED IS NOT NULL 
             GROUP BY YEAR_FILED;
             '''
     return Query
@@ -153,6 +154,7 @@ def get_total_count_all_cases_by_year():
             ,COUNT(*)           AS Proxy_count
 
             FROM SCA_data
+            WHERE YEAR_FILED IS NOT NULL
             GROUP BY YEAR_FILED;
             '''
     return Query

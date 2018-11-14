@@ -5,10 +5,15 @@
 ### IMPORT LIBRARIES
 import pandas as pd
 import mysql.connector
+import os
+
 
 ### IMPORT MODULES
 import Module_7_DataAnalysis as m7
+import Module_0_utility_functions as m0
 
+### Directory object(s)
+target_dir = r'/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output'
 
 ### SQL INSTANCIATION
 mydb = mysql.connector.connect(
@@ -29,12 +34,14 @@ mydb = mysql.connector.connect(
 
 '''
 
-## Query 1:     NUMBER LAWSUITS BY YEAR__________________________________________________________
+## QUERY_1:     NUMBER LAWSUITS BY YEAR__________________________________________________________
 df_claim_count_by_year = m7.sql_query(mydb, m7.query1_count_groupby_year())
 #print(df_claim_count_by_year)
+#m0.write_to_excel(df_claim_count_by_year, 'Claim_count_by_year', target_dir)
 
 
-## Query 2:     Num of LAWSUITS_CASE_STATUS______________________________________________________
+
+## QUERY_4:     Num of LAWSUITS_CASE_STATUS______________________________________________________
 df_count_groupby_year_case_status = m7.sql_query(mydb, m7.query2_count_groupby_year_case_status())
 
 # Limit Dataframe By Case Status Type
@@ -65,16 +72,31 @@ def get_new_df(df_dismissed, df_settled, df_ongoing):
                                 (df_new['Dismissed'] + df_new['Settled'] + df_new['Ongoing']),2)
     return df_new
 
-# QUERY 3 - INVESTIGATE DISMISSAL RATE BY CASE ALLEGATION______________________________________
+
+
+
+# QUERY_3 - INVESTIGATE DISMISSAL RATE BY CASE ALLEGATION______________________________________
 
 Count_dismissal = m7.sql_query(mydb, m7.get_count_all_allegations_by_year_for_dismissed()).set_index('YEAR_FILED')
 '''Approach:  Create three dataframes and filter by case_status
 '''
 Count_all = m7.sql_query(mydb, m7.get_total_count_all_cases_by_year()).set_index('YEAR_FILED')
+dismissal_rate =  Count_dismissal.div(Count_all)
 
-dismissal_rate = 
+
+print(Count_all.head())
 
 
+# WRITE RELATIONSHIPS TO EXCEL_________________________________________________________________
+
+## Dismissal Rate
+#m0.write_to_excel(dismissal_rate, 'Dismissal_rate_by_case_type', target_dir)
+
+## Case Status by Year
+#m0.write_to_excel(get_new_df(df_dismissed, df_settled, df_ongoing), 'Case_status_by_year', target_dir)
+
+## Claims Count By Year
+#m0.write_to_excel(df_claim_count_by_year, 'Claim_count_by_year', target_dir)
 
 
 
