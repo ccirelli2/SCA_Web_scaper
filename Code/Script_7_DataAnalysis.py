@@ -35,33 +35,35 @@ mydb = mysql.connector.connect(
 '''
 
 ## QUERY_1:     NUMBER LAWSUITS BY YEAR__________________________________________________________
-df_claim_count_by_year = m7.sql_query(mydb, m7.query1_count_groupby_year())
-#print(df_claim_count_by_year)
-#m0.write_to_excel(df_claim_count_by_year, 'Claim_count_by_year', target_dir)
+
+def get_claim_count_groupby_year(mydb):
+    df_claim_count_by_year = m7.sql_query(mydb, m7.query1_count_groupby_year())
+    return df_claim_count_by_year       
 
 
 
 ## QUERY_4:     Num of LAWSUITS_CASE_STATUS______________________________________________________
-df_count_groupby_year_case_status = m7.sql_query(mydb, m7.query2_count_groupby_year_case_status())
-
-# Limit Dataframe By Case Status Type
-df_dismissed = m7.limit_dataframe_casetype_year(df_count_groupby_year_case_status, 
-                                               'Dismissed', '2018')
-# Settled
-df_settled = m7.limit_dataframe_casetype_year(df_count_groupby_year_case_status, 
-                                              'Settled', '2018')
-# Ongoing
-df_ongoing = m7.limit_dataframe_casetype_year(df_count_groupby_year_case_status,
-                                              'Ongoing', '2018')
 
 # Create Dataframe - Case_status by Year, Dismissal % of Total Cases
-def get_new_df(df_dismissed, df_settled, df_ongoing):
+def get_case_status_count_groupby_year(mydb):
     '''Documentation
     1.) Input:          Our Query2 dataframe limited by claim type.  These will form the basis
                         of the new columns. 
     2.) Output:         A new dataframe with the count of claim type and % dismissed 
                         by year. 
     '''
+    # Get Count by Year, Case Status
+    df_count_groupby_year_case_status = m7.sql_query(mydb, 
+            m7.query2_count_groupby_year_case_status())
+    # Limit Dataframe By Case Status Type
+    df_dismissed = m7.limit_dataframe_casetype_year(df_count_groupby_year_case_status,
+                                               'Dismissed', '2018')
+    # Settled
+    df_settled = m7.limit_dataframe_casetype_year(df_count_groupby_year_case_status,
+                                              'Settled', '2018')
+    # Ongoing
+    df_ongoing = m7.limit_dataframe_casetype_year(df_count_groupby_year_case_status,
+                                              'Ongoing', '2018')
     dict_new = {}
     df_new = pd.DataFrame(dict_new, index = ['2010', '2011', '2012', '2013', '2014', 
                                             '2015', '2016', '2017'])
@@ -74,28 +76,46 @@ def get_new_df(df_dismissed, df_settled, df_ongoing):
 
 
 
-
 # QUERY_3 - INVESTIGATE DISMISSAL RATE BY CASE ALLEGATION______________________________________
+'''Documentation:
+    Count_dimissal:     Create a dataframe with the rows organized by year and columns by 
+                        allegation type.  Then we limit the Count_dimissal dataframe to only
+                        those cases that were dismissed and the 
+    Count_all:          Count of all cases.
+    Dismissal_rate:     We divide the Count_dimissal data frame by the Count_all dataframe
 
-Count_dismissal = m7.sql_query(mydb, m7.get_count_all_allegations_by_year_for_dismissed()).set_index('YEAR_FILED')
-'''Approach:  Create three dataframes and filter by case_status
 '''
-Count_all = m7.sql_query(mydb, m7.get_total_count_all_cases_by_year()).set_index('YEAR_FILED')
-dismissal_rate =  Count_dismissal.div(Count_all)
+def get_dismissal_rate_groupby_year_case_types(mydb):
+    Count_dismissal = m7.sql_query(mydb, 
+                   m7.get_count_all_allegations_by_year_for_dismissed()).set_index('YEAR_FILED')
+    Count_all = m7.sql_query(mydb, 
+            m7.get_count_all_allegations_all_years()).set_index('YEAR_FILED')
+    dismissal_rate =  Count_dismissal.div(Count_all)
+    return dismissal_rate
+
+# QUERY-4   DISMISSAL RATE BY CATEGORY (SECTOR, JUDGE, ETC)
 
 
-print(Count_all.head())
+test = m7.get_dismissal_rate_by_claim_category('Sector', 'Dismissed')
+
+
+
+
+
+
+
+
 
 
 # WRITE RELATIONSHIPS TO EXCEL_________________________________________________________________
 
-## Dismissal Rate
+## Query-1 Dismissal Rate - Case Status
 #m0.write_to_excel(dismissal_rate, 'Dismissal_rate_by_case_type', target_dir)
 
-## Case Status by Year
+## Query-2 Case Status by Year
 #m0.write_to_excel(get_new_df(df_dismissed, df_settled, df_ongoing), 'Case_status_by_year', target_dir)
 
-## Claims Count By Year
+## Query-3 Claims Count By Year
 #m0.write_to_excel(df_claim_count_by_year, 'Claim_count_by_year', target_dir)
 
 

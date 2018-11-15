@@ -115,49 +115,89 @@ def get_count_all_allegations_by_year_for_dismissed():
             '''
     return Query
 
+   
+def get_count_all_allegations_all_years():
 
-def get_total_count_all_cases_by_year():
     Query = '''
             SELECT
             YEAR_FILED
-            ,COUNT(*)          AS Merger_count
-            ,COUNT(*)      AS NetIncome_count
-            ,COUNT(*)       AS CashFlow_count
-            ,COUNT(*) AS ProxyViolation_count
-            ,COUNT(*) AS RelatedParties_count
-            ,COUNT(*)      AS StockDrop_count
-            ,COUNT(*)     AS RevRec_count
-            ,COUNT(*)       AS Customers_count
-            ,COUNT(*)  AS Q4_count
-            ,COUNT(*)   AS Q3_count
-            ,COUNT(*) AS CorpGov_count
-            ,COUNT(*) AS ConflictInt_count
-            ,COUNT(*)      AS Accounting_count
-            ,COUNT(*)            AS Fees_count
-            ,COUNT(*) AS FailedDisclose_count
-            ,COUNT(*) AS FalseMisleading_count
-            ,COUNT(*)     AS Commissions_count
-            ,COUNT(*)      AS Bankruptcy_count
-            ,COUNT(*) AS SecondaryOffering_count
-            ,COUNT(*)             AS IPO_count
-            ,COUNT(*) AS 1934_Act_count
-            ,COUNT(*)      AS Derivative_count
-            ,COUNT(*) AS 10B5_count
-            ,COUNT(*)        AS 1933_Act_count
-            ,COUNT(*)   AS HeavyTrading_count
-            ,COUNT(*) AS SexualMisconduct_count
-            ,COUNT(*)    AS ClassAction_count
-            ,COUNT(*)           AS ERISA_count
-            ,COUNT(*)            AS FCPA_count
-            ,COUNT(*) AS SEC_investigation_count
-            ,COUNT(*)     AS DataBreach_count
-            ,COUNT(*)           AS Proxy_count
+            ,COUNT(Merger)          AS Merger_count
+            ,COUNT(Net_Income)      AS NetIncome_count
+            ,COUNT(Cash_Flow)       AS CashFlow_count
+            ,COUNT(Proxy_violation) AS ProxyViolation_count
+            ,COUNT(Related_parties) AS RelatedParties_count
+            ,COUNT(Stock_Drop)      AS StockDrop_count
+            ,COUNT(Revenue_Rec)     AS RevRec_count
+            ,COUNT(Customers)       AS Customers_count
+            ,COUNT(Fourth_Quarter)  AS Q4_count
+            ,COUNT(Third_Quarter)   AS Q3_count
+            ,COUNT(Corporate_Governance) AS CorpGov_count
+            ,COUNT(Conflicts_Interest) AS ConflictInt_count
+            ,COUNT(Accounting)      AS Accounting_count
+            ,COUNT(Fees)            AS Fees_count
+            ,COUNT(Failed_disclose) AS FailedDisclose_count
+            ,COUNT(False_misleading) AS FalseMisleading_count
+            ,COUNT(Commissions)     AS Commissions_count
+            ,COUNT(Bankruptcy)      AS Bankruptcy_count
+            ,COUNT(Secondary_Offering) AS SecondaryOffering_count
+            ,COUNT(IPO)             AS IPO_count
+            ,COUNT(1934_Exchange_Act) AS 1934_Act_count
+            ,COUNT(Derivative)      AS Derivative_count
+            ,COUNT(10b5) AS 10B5_count
+            ,COUNT(1933_Act)        AS 1933_Act_count
+            ,COUNT(Heavy_trading)   AS HeavyTrading_count
+            ,COUNT(Sexual_Misconduct) AS SexualMisconduct_count
+            ,COUNT(class_action)    AS ClassAction_count
+            ,COUNT(ERISA)           AS ERISA_count
+            ,COUNT(FCPA)            AS FCPA_count
+            ,COUNT(SEC_Investigation) AS SEC_investigation_count
+            ,COUNT(Data_breach)     AS DataBreach_count
+            ,COUNT(Proxy)           AS Proxy_count
 
             FROM SCA_data
             WHERE YEAR_FILED IS NOT NULL
             GROUP BY YEAR_FILED;
             '''
     return Query
+
+
+
+
+
+
+def get_dismissal_rate_by_claim_category(category, case_status):
+    '''
+    Input:      
+                category:   A string that represents the attribute from our data for which you want
+                to use in the group statement in order to see the dismissal rate for the sub
+                groups of this category. Note that the input must be the same as the column name 
+                from our MySQL table. 
+                case_status: The status of the case (Dismissed, Settled, Ongoing) for which
+                you want to filter the information.  Must be a string. 
+    Format:     The string function 'format' will insert into the SQL statement the values the
+                user choses for category and case_status
+
+    Output:     SQL query statement as a string
+
+    '''
+
+    Query = '''
+            SELECT 
+
+            {}
+            COUNT(*)
+
+            FROM SCA_data
+            WHERE YEAR_FILED IS NOT NULL
+            AND case_status = {}
+            GROUP BY {};
+            '''.format(category, case_status, category)
+    return Query
+
+
+
+
+
 
 
 
