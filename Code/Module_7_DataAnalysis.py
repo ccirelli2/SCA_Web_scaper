@@ -176,7 +176,8 @@ def get_dismissal_rate_by_claim_category(category, case_status):
                 you want to filter the information.  Must be a string. 
     Format:     The string function 'format' will insert into the SQL statement the values the
                 user choses for category and case_status
-
+    Note:       The input {} to the conditional statement in the where clause needs to be wrapped in 
+                quotes. 
     Output:     SQL query statement as a string
 
     '''
@@ -185,13 +186,13 @@ def get_dismissal_rate_by_claim_category(category, case_status):
             SELECT 
 
             {}
-            COUNT(*)
+            ,COUNT(*) AS 'COUNT {}'
 
             FROM SCA_data
             WHERE YEAR_FILED IS NOT NULL
-            AND case_status = {}
+            AND case_status = '{}'
             GROUP BY {};
-            '''.format(category, case_status, category)
+            '''.format(category, case_status, case_status, category)
     return Query
 
 

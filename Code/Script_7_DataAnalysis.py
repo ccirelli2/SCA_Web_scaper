@@ -42,7 +42,7 @@ def get_claim_count_groupby_year(mydb):
 
 
 
-## QUERY_4:     Num of LAWSUITS_CASE_STATUS______________________________________________________
+## QUERY_2:     Num of LAWSUITS_CASE_STATUS______________________________________________________
 
 # Create Dataframe - Case_status by Year, Dismissal % of Total Cases
 def get_case_status_count_groupby_year(mydb):
@@ -76,7 +76,7 @@ def get_case_status_count_groupby_year(mydb):
 
 
 
-# QUERY_3 - INVESTIGATE DISMISSAL RATE BY CASE ALLEGATION______________________________________
+# QUERY-3:    INVESTIGATE DISMISSAL RATE BY CASE ALLEGATION______________________________________
 '''Documentation:
     Count_dimissal:     Create a dataframe with the rows organized by year and columns by 
                         allegation type.  Then we limit the Count_dimissal dataframe to only
@@ -93,12 +93,29 @@ def get_dismissal_rate_groupby_year_case_types(mydb):
     dismissal_rate =  Count_dismissal.div(Count_all)
     return dismissal_rate
 
-# QUERY-4   DISMISSAL RATE BY CATEGORY (SECTOR, JUDGE, ETC)
+# QUERY-4:   DISMISSAL RATE BY CATEGORY (SECTOR, JUDGE, ETC)
+
+def get_dismissal_rate_by_category(mydb, category):
+    '''
+    R1:     Relationship 1
+    '''
+    # Get Counts for each case_status_type
+    Dismissed = m7.sql_query(mydb, 
+            m7.get_dismissal_rate_by_claim_category(category, 'Dismissed')).set_index('Sector')
+    Settled =   m7.sql_query(mydb, 
+            m7.get_dismissal_rate_by_claim_category(category, 'Settled')).set_index('Sector')
+    Ongoing =   m7.sql_query(mydb, 
+            m7.get_dismissal_rate_by_claim_category(category, 'Ongoing')).set_index('Sector')
+    # Get Dismissal Rate
+    Dismissal_rate = Dismissed.div(Settled)
+    # Return New Dataframe
+    return Dismissal_rate 
 
 
-test = m7.get_dismissal_rate_by_claim_category('Sector', 'Dismissed')
+dismissal_rate_by_category = get_dismissal_rate_by_category(mydb, 'Sector')
 
 
+print(dismissal_rate_by_category)
 
 
 
