@@ -93,53 +93,88 @@ def get_dismissal_rate_groupby_year_case_types(mydb):
     dismissal_rate =  Count_dismissal.div(Count_all)
     return dismissal_rate
 
+
+
 # QUERY-4:   DISMISSAL RATE BY CATEGORY (SECTOR, JUDGE, ETC)
 
-def get_dismissal_rate_by_category(mydb, category):
+def get_dismissal_rate_by_category(mydb, relationship, col_title, min_year, category):
+    '''INPUTS
+    mydb:           Mysql connection
+    relationship:   The relationship that you want to output, eg. dismissal rate, settle rate, etc.
+    col_title:      The title of your column, i.e. Dismissal_rate, Settlement_rate, etc. 
+    min_year:       The minimum year from which you want to pull the data.  Ex min_year = 2010, the
+                    function will only include data from 2011 to 2018. 
+    category:       The category you want to select to group you data.  
+    
+    Permissible options for category include:        
+                    Sector, Industry, Status_2, Headquarters, Company_market, 
+                    Court, Judge, Plaintiff_firm. 
+    Note:           We need to include state of domicile of the company, 
+                    buckets for the class period, 
+                    potentially buckets for the stock drop, and defense counsel. 
     '''
-    R1:     Relationship 1
-    '''
-    # Get Counts for each case_status_type
+    # GET COUNTS FOR EACH CASE_STATUS TYPE----------------------------------------
     Dismissed = m7.sql_query(mydb, 
-            m7.get_dismissal_rate_by_claim_category(category, 'Dismissed')).set_index('Sector')
+            m7.get_dismissal_rate_by_claim_category(category, col_title, min_year, 
+                                                    'Dismissed')).set_index(category)
     Settled =   m7.sql_query(mydb, 
-            m7.get_dismissal_rate_by_claim_category(category, 'Settled')).set_index('Sector')
+            m7.get_dismissal_rate_by_claim_category(category, col_title, min_year, 
+                                                    'Settled')).set_index(category)
     Ongoing =   m7.sql_query(mydb, 
-            m7.get_dismissal_rate_by_claim_category(category, 'Ongoing')).set_index('Sector')
-    # Get Dismissal Rate
-    Dismissal_rate = Dismissed.div(Settled)
-    # Return New Dataframe
-    return Dismissal_rate 
+            m7.get_dismissal_rate_by_claim_category(category, col_title, min_year, 
+                                                    'Ongoing')).set_index(category)
+    
+    # SELECT WHICH RELATIONSHIP (Percentage Dismissed or Settled or Ongoing)-----        
+    
+    if relationship == 'Dismissed':
+        # Get Dismissal Rate
+        Dismissal_rate = round(Dismissed.div(Dismissed + Settled + Ongoing),2)
+        # Return New Dataframe
+        return Dismissal_rate.dropna() 
+
+    elif relationship == 'Settled':
+        # Get Dismissal Rate
+        Settlement_rate = round(Settled.div(Dismissed + Settled + Ongoing),2)
+        # Return New Dataframe
+        return Settlement_rate.dropna()
+
+    elif relationship == 'Ongoing':
+        # Get Dismissal Rate
+        Ongoing_rate = round(Settled.div(Dismissed + Settled + Ongoing),2)
+        # Return New Dataframe
+        return Ongoing_rate.dropna()
+
+    return None
 
 
-dismissal_rate_by_category = get_dismissal_rate_by_category(mydb, 'Sector')
+
+## RUN CODE_____________________________________________________________________
 
 
-print(dismissal_rate_by_category)
-
-
-
-
-
+dismissal_rate_by_category = get_dismissal_rate_by_category(mydb, 'Dismissed',  
+            '%_Dismissal', 2010, 'Court')\
+                    .sort_values(by = '%_Dismissal', ascending = False)
 
 
 
 # WRITE RELATIONSHIPS TO EXCEL_________________________________________________________________
-
-## Query-1 Dismissal Rate - Case Status
-#m0.write_to_excel(dismissal_rate, 'Dismissal_rate_by_case_type', target_dir)
-
-## Query-2 Case Status by Year
-#m0.write_to_excel(get_new_df(df_dismissed, df_settled, df_ongoing), 'Case_status_by_year', target_dir)
-
-## Query-3 Claims Count By Year
-#m0.write_to_excel(df_claim_count_by_year, 'Claim_count_by_year', target_dir)
-
-
-
-
-
 '''
+# Write each category relationship to Excel.
+List_categories = ['Sector', 'Industry, Status_2', 'Headquarters', 'Company_market', 
+                    'Court', 'Judge', 'Plaintiff_firm']
+
+# Run Loop:
+for category in List_categories:
+    print('Writing relationship for {} category to Excel at {}'.format(category, target_dir))
+    rate_by_category = get_dismissal_rate_by_category(mydb, 'Dismissed', 
+            '%_Dismissed', 2010, category)
+    m0.write_to_excel(rate_by_category, category, target_dir)
+'''
+
+### NOTES ___________________________________________________________________
+'''NOTES:
+ We can create a matrix that shows which case types are best to bring in which jurisdictions to get a dismissal.
+
 Note, once you get the dismissal rate for each year, may limit to years only with mininal
 ongoing cases, then you can start indexing for specific claim types, limit to each claim type
 and compare the dismissal rates to see if there are any interesting relationships. 

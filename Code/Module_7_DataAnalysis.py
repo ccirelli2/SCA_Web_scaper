@@ -165,7 +165,7 @@ def get_count_all_allegations_all_years():
 
 
 
-def get_dismissal_rate_by_claim_category(category, case_status):
+def get_dismissal_rate_by_claim_category(category, col_title, min_year, case_status):
     '''
     Input:      
                 category:   A string that represents the attribute from our data for which you want
@@ -180,19 +180,23 @@ def get_dismissal_rate_by_claim_category(category, case_status):
                 quotes. 
     Output:     SQL query statement as a string
 
+
     '''
 
     Query = '''
             SELECT 
 
             {}
-            ,COUNT(*) AS 'COUNT {}'
+            ,COUNT(*) AS '{}'
 
             FROM SCA_data
-            WHERE YEAR_FILED IS NOT NULL
+            WHERE YEAR_FILED > {}
+            AND {} IS NOT NULL
+            AND {} != ''
             AND case_status = '{}'
+            
             GROUP BY {};
-            '''.format(category, case_status, case_status, category)
+            '''.format(category, col_title,  min_year, category, category, case_status, category)
     return Query
 
 
