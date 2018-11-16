@@ -150,11 +150,14 @@ def get_dismissal_rate_by_category(mydb, relationship, col_title, min_year, cate
 
 ## RUN CODE_____________________________________________________________________
 
+Relationship = 'Plaintiff_firm'
 
 dismissal_rate_by_category = get_dismissal_rate_by_category(mydb, 'Dismissed',  
-            '%_Dismissal', 2010, 'Court')\
+            '%_Dismissal', 2010, Relationship)\
                     .sort_values(by = '%_Dismissal', ascending = False)
 
+print(dismissal_rate_by_category)
+m0.write_to_excel(dismissal_rate_by_category, Relationship, target_dir)
 
 
 # WRITE RELATIONSHIPS TO EXCEL_________________________________________________________________
