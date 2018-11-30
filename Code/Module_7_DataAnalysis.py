@@ -5,7 +5,36 @@
 import pandas as pd
 
 
-def sql_query(conn, Query):
+
+def get_count_null_values_by_column(df, list_non_binary_attributes):
+    '''
+    Inputs:
+        df:     The dataframe that represents the entire SCA_data table from the mysql db
+        list_non_binary_attributes:  List of column names for the non-binary attributes. 
+    Output:
+        A dictionary whose keys are the column names and values are the count of null
+        values
+    '''
+    # Create a Dictionary Object
+    Dict_null_values = {}
+
+    # Loop over list of column names
+    for attribute in list_non_binary_attributes:
+        Dict_null_values[attribute] = sum(list(map(lambda x: isinstance(x, type(None)), df[attribute])))
+
+    df = pd.DataFrame(Dict_null_values, index = ['Count_null']).transpose()
+
+    return df
+
+
+def sql_query_entire_table():
+
+    Query = '''SELECT *
+               FROM SCA_data;'''
+    return Query
+
+
+def sql_query_executor(conn, Query):
     '''
     conn:       Mysql connection
     Query:      Query to pass to function as a string. 
@@ -202,6 +231,18 @@ def get_dismissal_rate_by_claim_category(category, col_title, min_year, case_sta
 
 
 
+
+def get_plot_dismissal_rate(relationship, chart_title, xlabel):
+    fig = plt.figure()
+    plt.bar(relationship.index,
+        height = relationship['%_Dismissal'],
+        align = 'center',
+        width = 0.5)
+    fig.suptitle(chart_title, fontsize = 20)
+    plt.xticks(rotation=90, fontsize = 6)
+    plt.yticks(fontsize = 14)
+    plt.ylabel('%_Dismissal', fontsize = 18)
+    plt.show()
 
 
 

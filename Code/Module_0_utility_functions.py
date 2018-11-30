@@ -16,6 +16,7 @@ def write_to_excel(dataframe, filename, target_dir):
     filename = filename + '_' + str(datetime.today())
     writer = pd.ExcelWriter(filename+'.xlsx')
     dataframe.to_excel(writer, 'Data')
+    print('Dataframe {} has been written to {}'.format(filename, target_dir))
     writer.save()
 
 
