@@ -17,7 +17,11 @@ def sql_query_machine_learning_data_set(year):
                FROM SCA_data
                WHERE case_status IS NOT NULL
                AND YEAR_FILED > {}
-               AND case_status != 'ongoing';'''.format(year)
+               AND case_status != 'ongoing'
+               AND Plaintiff_firm != 'Error'
+               AND Judge != 'None'
+               AND CHAR_LENGTH(Judge) > 2
+               ;'''.format(year)
     return Query
 
 

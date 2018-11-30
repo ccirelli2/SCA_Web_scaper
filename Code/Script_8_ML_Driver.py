@@ -78,6 +78,8 @@ def prepare_dataset(conn, year):
 ML_data_set = prepare_dataset(mydb, 2000)
 
 
+print(ML_data_set.shape)
+
 
 ### MACHINE LEARNING PIPELINE___________________________________________________________
 

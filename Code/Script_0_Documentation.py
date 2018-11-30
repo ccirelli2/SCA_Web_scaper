@@ -15,6 +15,35 @@ MYSQL SCA_data TABLE------------------------------------------------------------
                         for when a datapoint cannot be scraped and insert a Null value. 
                         This way we will have a uniform way of identifying those values. 
 
+2.) Pre-Machine Learning Data Cleaning:
+
+    Filing_date, Close_Date, Year_filed:
+                        During the original construction of the scraper we ran into issues
+                        where the web page developer had variations in the structure of 
+                        their web page and we generated errors when trying to scrape these 
+                        fields.  Therefore, when we couldn't scrape the field, we used 
+                        an except statement and input an arbitrary date of 1/1/1900.
+                        That being said, and because we are not using these dates in the ML
+                        model as features, we do not need to remove them from the final 
+                        table. 
+    
+    Class_Period_End, Class_Period_Start
+                        except statement inserts 01/01/1900'
+                        Class_Period_Start:  Count = 12
+                        Class_Period_End: Count = 11
+
+    Judge:              
+                        We had some issues scraping this object. 
+                        Count = 29 rows include 'None' as the value for Judge
+                        Count = 107 include a char() object with length of less than 
+                        2 and no value for judge.  These will be removed from the 
+                        table in the pre-ML training clearning process. 
+
+    Plaintiff_firm:     Except statement set to error. 
+                        Appears in 55 rows. 
+
+
+
 
 MODULES & SCRIPTS-------------------------------------------------------------------------
 
