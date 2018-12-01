@@ -28,9 +28,6 @@ def sql_query_machine_learning_data_set(year):
 
 
 
-
-
-
 def transform_target_binary(df):
     '''Purpose:  Convert the column with our target value to 1/0.
     1         Dismissed
