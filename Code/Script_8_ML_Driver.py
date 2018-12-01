@@ -2,7 +2,7 @@
 
 '''
 The purpose of this Script is to develop the machine learning driver function that will direct
-the components of our ML algorithm data prep and result generation. 
+the components of our ML algorithm data prep and result generation.
 '''
 
 
@@ -17,7 +17,7 @@ from sklearn import preprocessing
 
 ### DIRECTORY OBJECTS_________________________________________________________________
 code_dir = r'/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Code'
-output_dir = r'/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output'
+output_dir = r'/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/ML_Algorithm_Results'
 
 ### IMPORT MODULES_____________________________________________________________________
 os.chdir(code_dir)
@@ -37,51 +37,9 @@ mydb = mysql.connector.connect(
         database='SCA_SCRAPER')
 
 ### PREPARE DATASET_____________________________________________________________________
+ML_data_set = m8.prepare_dataset(mydb, 2015).fillna(0)
 
-def prepare_dataset(conn, year):
-    '''
-    Purpose:    Prepare the dataset that we will use for our machine learning model
-    Conn:       mysql connection
-    Year:       Min year to be used to limit dataset to years > than this value
-    Output:     Dataset prepared for ML algorithm
-    '''
-
-    # 1.) Import SCA_data 
-    '''Input:  Year_Filed to exclude'''
-    df_SCA_data_table = m7.sql_query_executor(conn, m8.sql_query_machine_learning_data_set(year))
-
-    # 2.) Drop Columns - Defendant_address, case_summary, page_number
-    '''Based on our preliminary analysis, these two columns were not propertly scraped and contain
-    too many null values to be included in our final dataset. Therefore, they will be dropped
-    '''
-    df_drop_columns = df_SCA_data_table.drop(labels = ['defendant_address', 'case_summary', 
-                                                        'page_number', 'Ref_court', 'Ref_docket', 
-                                                        'Ref_judge', 'Ref_date_filed', 
-                                                        'Ref_class_period_start', 
-                                                        'Ref_class_period_end', 
-                                                        'filling_date', 'defendant_name', 
-                                                        'close_date', 'Date_Filed', 'Docket', 
-                                                        'Class_Period_Start', 'Class_Period_End', 
-                                                        'Symbol', 'YEAR_FILED', 'Status_2'], axis = 1)
-
-    # 3.) Convert case_status to binary, where 1 = 'dimissed', 0 = 'settled'
-    df_transform_case_status = m8.transform_target_binary(df_drop_columns)
-
-    # 4.) Transform Plaintiff Firm - Limit to first 25 Characters
-    df_transform_plaintiff_firm = m8.transform_plaintiff_firm(df_transform_case_status)
-        
-
-
-    # Return Transformed Dataset
-    return df_transform_plaintiff_firm
-
-ML_data_set = prepare_dataset(mydb, 2000)
-
-
-print(ML_data_set.shape)
-
-
-### MACHINE LEARNING PIPELINE___________________________________________________________
+### DATA ENCODING & SPLIT___________________________________________________________
 
 # Step1:  OneHotEncode DataFrame
 df_encoded = pd.get_dummies(ML_data_set)
@@ -92,52 +50,112 @@ X = df_encoded.drop('Target_case_status_binary', axis = 1)
 Y = df_encoded['Target_case_status_binary']
 
 
+### NEAREST NEIGHBOR________________________________________________________________
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+
+def train_KNN_predictor(X, Y):
+    '''Documentation:
+    random_state:      seed used by the random generator.
+    stratify:          separation of data into homogenious groups before sampling.
+    range:             range over which to iterate to generate predictions
+    lists:             capture predictions
+
+    '''
+    # Split dataset
+    x_train, x_test, y_train, y_test = train_test_split(
+                                        X, Y,
+                                        stratify = Y,
+                                        random_state = 66)
+
+    # Lists to Capture Predictions
+    accuracy_training_list = []
+    accuracy_test_list = []
+
+    # Range of Nearest Neighbors
+    num_range_neighbors = range(1,10)
+    # Run Loop
+    for num in num_range_neighbors:
+        # Instantiate KNN Algorithm
+        knn = KNeighborsClassifier(n_neighbors = num)
+        # Fit algorithm to training data
+        knn.fit(x_train, y_train)
+        accuracy_training_list.append(knn.score(x_train, y_train))
+        accuracy_test_list.append(knn.score(x_test, y_test))
+
+    # Write Results To Excel
+    df = pd.DataFrame({}, index = [2,3,4,5,6,7,8,9,10])
+    df['Accuracy_Training'] = accuracy_training_list
+    df['Accuracy_Test'] = accuracy_test_list
+    m0.write_to_excel(df, 'KNN_output', output_dir)
+
+    # Plotting
+    plt.plot(num_range_neighbors, accuracy_training_list, label = 'Accuracy of training')
+    plt.plot(num_range_neighbors, accuracy_test_list, label = 'Accuracy of test')
+    plt.ylabel('Accuracy', fontsize = 20)
+    plt.xlabel('Number of Neighbors' , fontsize = 20)
+    plt.title('Performance KNN Algorithm SCA Dataset', fontsize = 30)
+    plt.legend(fontsize = 15)
+    plt.xticks(fontsize = 15)
+    plt.yticks(fontsize = 15)
+    plt.show()
+
+    # Return Results in df object
+    return df
+
+#train_KNN_predictor(X,Y)
 
 
 
 
+### KNN - ITERATE YEAR FILED TOWARD PRESENT_____________________________________
+'''Documentation
+Objective:          The objective is to test the hypothesis that there will be a
+                    positive relationship between the accuracy of our model and
+                    using more recent data.  The underlying assumption is that due
+                    to a plethora of reasons, including by not limited to changes
+                    in jurisprudence and status, how the outcome of cases are decided
+                    will be more homogeneous the nearer we are to the present.
+range_object:       This object will determine which data we pull into our algorithm
+                    organized by yearself.
+prepare_dataset:    the 'year' input into this function will restrict the dataset
+                    to years greater than this input.  For example, if the input is
+                    2010, then the algorithm will only pull data for lawsuits that
+                    were filed after this year.
+'''
 
 
 
+def train_KNN_predictor_iterate_over_range_years(mydb, range_object):
 
+    # Lists objects to capture results
+    year_list = []
+    year_accuracy_score_list = []
 
-# Scikit Learn - Decision Tree-------------------------------------------------------
+    # Iterate over each year in range
+    for year in range_object:
 
+    # Prepare Data Set
+    ML_data_set = m8.prepare_dataset(mydb, year).fillna(0)
+    # OneHotEncode DataFrame
+    df_encoded = pd.get_dummies(ML_data_set)
+    # Step2:  Separate X & Y Variables
+    X = df_encoded.drop('Target_case_status_binary', axis = 1)
+    Y = df_encoded['Target_case_status_binary']
 
+    # Split Data into Train/Test
+    x_train, x_test, y_train, y_test = train_test_split(
+                                        X, Y,
+                                        stratify = Y,
+                                        random_state = 66)
 
-# 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # Range of Nearest Neighbors
+    num_range_neighbors = range(1,10)
+    # Run Loop
+    for num in num_range_neighbors:
+        # Instantiate KNN Algorithm
+        knn = KNeighborsClassifier(n_neighbors = num)
+        # Fit algorithm to training data
+        knn.fit(x_train, y_train)
+        accuracy_training_list.append(knn.score(x_train, y_train))
+        accuracy_test_list.append(knn.score(x_test, y_test))
