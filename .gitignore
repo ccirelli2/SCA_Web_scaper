@@ -56,3 +56,15 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Excel files
+*.xlsx
+*.png
+
+# Exclude folders
+ML_Algorithm_Results/
+Ngram_output/
+Scraper_output/
+Concat_txt_page_case_summary/
+
+

@@ -7,9 +7,21 @@ Script:     This script contains the functions that will be used to prepare the 
 ## Import Packages
 import pandas as pd
 from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import BernoulliNB
+from sklearn.ensemble import RandomForestClassifier
+import matplotlib.pyplot as plt
 
 ## Import Project Modules
 import Module_7_DataAnalysis as m7
+import Module_0_utility_functions as m0
+
+## Directory Object
+output_dir = r'/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/ML_Algorithm_Results'
+
+
 
 
 
@@ -130,3 +142,282 @@ def prepare_dataset(conn, year):
 
     # Return Transformed Dataset
     return df_transform_plaintiff_firm
+
+
+
+
+### ALGORITHMS_______________________________________________________________
+
+
+
+## Nearest Neighbor----------------------------------------------------------
+
+def train_KNN_predictor(X, Y):
+    '''Documentation:
+    random_state:      seed used by the random generator.
+    stratify:          separation of data into homogenious groups before sampling.
+    range:             range over which to iterate to generate predictions
+    lists:             capture predictions
+
+    '''
+    # Split dataset
+    x_train, x_test, y_train, y_test = train_test_split(
+                                        X, Y,
+                                        stratify = Y,
+                                        random_state = 66)
+
+    # Lists to Capture Predictions
+    accuracy_training_list = []
+    accuracy_test_list = []
+
+    # Range of Nearest Neighbors
+    num_range_neighbors = range(1,10)
+    # Run Loop
+    for num in num_range_neighbors:
+        # Instantiate KNN Algorithm
+        knn = KNeighborsClassifier(n_neighbors = num)
+        # Fit algorithm to training data
+        knn.fit(x_train, y_train)
+        accuracy_training_list.append(knn.score(x_train, y_train))
+        accuracy_test_list.append(knn.score(x_test, y_test))
+
+    # Write Results To Excel
+    df = pd.DataFrame({}, index = [2,3,4,5,6,7,8,9,10])
+    df['Accuracy_Training'] = accuracy_training_list
+    df['Accuracy_Test'] = accuracy_test_list
+    m0.write_to_excel(df, 'KNN_output', output_dir)
+
+    # Plotting
+    plt.plot(num_range_neighbors, accuracy_training_list, label = 'Accuracy of training')
+    plt.plot(num_range_neighbors, accuracy_test_list, label = 'Accuracy of test')
+    plt.ylabel('Accuracy', fontsize = 20)
+    plt.xlabel('Number of Neighbors' , fontsize = 20)
+    plt.title('Performance KNN Algorithm SCA Dataset', fontsize = 30)
+    plt.legend(fontsize = 15)
+    plt.xticks(fontsize = 15)
+    plt.yticks(fontsize = 15)
+    plt.grid(b=None, which='major')
+    plt.show()
+
+    # Return Results in df object
+    return df
+
+
+
+def train_KNN_predictor_iterate_over_range_years(mydb, range_object, num_neighbors):
+
+    '''Documentation
+    Objective:          The objective is to test the hypothesis that there will be a
+                        positive relationship between the accuracy of our model and
+                        using more recent data.  The underlying assumption is that due
+                        to a plethora of reasons, including by not limited to changes
+                        in jurisprudence and status, how the outcome of cases are decided
+                        will be more homogeneous the nearer we are to the present.
+    range_object:       This object will determine which data we pull into our algorithm
+                        organized by yearself.
+    prepare_dataset:    the 'year' input into this function will restrict the dataset
+                        to years greater than this input.  For example, if the input is
+                        2010, then the algorithm will only pull data for lawsuits that
+                        were filed after this year.
+    num_neighbors:      The user may select the number of nearest neighbor nodes to use in the
+                        algorithm.  Based on the above function where we iterated over a range
+                        of 1-10 nearest neighbors, it appears that 3 provides for the best
+                        prediction score.
+    ML_data_set         fillna:      Fill all None values with a 0. Should only apply to our
+                        binary features.
+    '''
+
+    # Lists objects to capture results
+    year_list = []
+    accuracy_train_score_list = []
+    accuracy_test_score_list = []
+
+    # Iterate over each year in range
+    for year in range_object:
+
+        # Append to list year
+        year_list.append(year)
+
+        # Prepare Data Set
+        ML_data_set = prepare_dataset(mydb, year).fillna(0)
+        # OneHotEncode DataFrame
+        df_encoded = pd.get_dummies(ML_data_set)
+        # Step2:  Separate X & Y Variables
+        X = df_encoded.drop('Target_case_status_binary', axis = 1)
+        Y = df_encoded['Target_case_status_binary']
+
+        # Split Data into Train/Test
+        x_train, x_test, y_train, y_test = train_test_split(
+                                        X, Y,
+                                        stratify = Y,
+                                        random_state = 66)
+        # Instantiate KNN Algorithm
+        knn = KNeighborsClassifier(n_neighbors = num_neighbors)
+
+        # Fit algorithm to training data
+        knn.fit(x_train, y_train)
+        accuracy_train_score_list.append(knn.score(x_train, y_train))
+        accuracy_test_score_list.append(knn.score(x_test, y_test))
+
+    # Write Results To Excel
+    df = pd.DataFrame({}, index = [[x for x in range_object]])
+    df['Accuracy_Training'] = accuracy_train_score_list
+    df['Accuracy_Test'] = accuracy_test_score_list
+    m0.write_to_excel(df, 'KNN_output', output_dir)
+
+    # Plotting
+    x_label_range_year = [x for x in range_object]
+    plt.plot(x_label_range_year, accuracy_train_score_list, label = 'Accuracy of training')
+    plt.plot(x_label_range_year, accuracy_test_score_list, label = 'Accuracy of test')
+    plt.ylabel('Accuracy', fontsize = 20)
+    plt.xlabel('Range of Years Case Was Filed' , fontsize = 20)
+    plt.title('''Performance KNN Algorithm SCA Dataset
+                 Year Range => {}
+                 Number of Neighbors => {}'''.format('2000-2018', str(num_neighbors))
+                 , fontsize = 30)
+    plt.legend(fontsize = 15)
+    plt.xticks(fontsize = 15)
+    plt.yticks(fontsize = 15)
+    plt.grid(b=None, which='major')
+    plt.show()
+
+    # Return Results in df object
+    return df
+
+
+
+## Pipeline Setup------------------------------------------------------------------
+
+def train_log_regressor_pipeline_version(X, Y, random_state_value,  C_value):
+    # Split Data
+    x_train, x_test, y_train, y_test = train_test_split(X, Y,
+                                                    stratify = Y,
+                                                    random_state = random_state_value)
+    # Instantiate Model
+    log_reg = LogisticRegression(C = C_value)
+    log_reg.fit(x_train, y_train)
+
+    # Return Test Score
+    return log_reg.score(x_test, y_test)
+
+
+def train_KNN_predictor_pipeline_version(X, Y, random_state_value, num_neighbors):
+    # Split dataset
+    x_train, x_test, y_train, y_test = train_test_split(
+                                        X, Y,
+                                        stratify = Y,
+                                        random_state = random_state_value)
+    # Instantiate KNN Algorithm
+    knn = KNeighborsClassifier(n_neighbors = num_neighbors)
+    # Fit algorithm to training data
+    knn.fit(x_train, y_train)
+    
+    # Return prediction
+    return knn.score(x_test, y_test)
+    
+
+
+def train_NaiveBayes_predictor_pipeline_version(X,Y, random_state_value, NB_type):
+
+    x_train, x_test, y_train, y_test = train_test_split(X, Y, 
+                                                        stratify = Y, 
+                                                        random_state = random_state_value)
+    if NB_type == 'Gaussian':
+        clf_NB = GaussianNB()
+        clf_NB.fit(x_train, y_train)
+        return clf_NB.score(x_test, y_test)
+
+    elif NB_type == 'Bernoulli':
+        clf_NB = BernoulliNB()
+        clf_NB.fit(x_train, y_train)
+        return clf_NB.score(x_test, y_test)
+
+
+def train_RandomForecast_predictor_pipeline_version(X,Y, random_state_value):
+
+    x_train, x_test, y_train, y_test = train_test_split(X, Y, 
+                                                        stratify = Y)
+                 
+    clf_RF = RandomForestClassifier(n_estimators = 100)
+    clf_RF.fit(x_train, y_train)
+    Feature_important = list(map(lambda x: round(x,2), clf_RF.feature_importances_))
+    df = pd.DataFrame({}, index = X.columns)
+    df['Feature Importance'] = Feature_important
+    m0.write_to_excel(df, 'Feature_Importance', output_dir)
+    
+    # Return Prediction
+    return clf_RF.score(x_test, y_test)
+
+
+
+# ELIMINATE ATTRIBUTES & RUN MODEL
+'''Documentation
+
+Purpose:        The purpose of this section is to generate lists in order to 
+
+
+'''
+
+
+list_categorical_features = ['Sector', 'Industry', 'Company_market',
+                             'Court', 'Judge', 'Plaintiff_firm_modified',
+                             'Target_case_status_binary']
+
+
+def limit_feature_selection(df, limit_selection):
+    if limit_selection == 'Drop_derived_values':
+        return df[['Sector', 'Industry', 'Company_market',
+                             'Court', 'Judge', 'Plaintiff_firm_modified',
+                             'Target_case_status_binary']]
+    elif limit_selection == 'Use_all':
+        return df
+
+    elif limit_selection == 'Drop_merger_value':
+        return df.drop(['Derivative', 'Merger', 'Proxy'], axis = 1)
+
+
+
+
+
+
+
+# Graph Comparison - Average Performance All Features vs Dropping Derived Values
+
+def graph_comparison_performance_features():
+    year = [x for x in range(2000, 2017)]
+    All_features = [.7, .689, .693, .689, .68, .693, .699, .704, .688, .726, .706,
+                    .711, .705, .740, .822, .889, .954]
+    Categorical_features_only = [.628, .595, .595, .612, .624, .617, .631, .655, .661,
+                                 .680, .674, .696, .716, .757, .834, .876, .954]
+
+    df = pd.DataFrame({}, index = year)
+    df['Average_Performance_All_Features'] = All_features
+    df['Categorical_features_only'] = Categorical_features_only
+
+    plt.plot(year, df['Average_Performance_All_Features'], label = 'All_Features')
+    plt.plot(year, df['Categorical_features_only'], label = 'Categorical_Features_Only')
+    plt.ylabel('Average_Score', fontsize = 20)
+    plt.xlabel('Range of Years Case Was Filed' , fontsize = 20)
+    plt.title('Comparison: All Features vs Categorical Features Only', fontsize = 30)
+    plt.legend(fontsize = 15)
+    plt.xticks(fontsize = 15)
+    plt.yticks(fontsize = 15)
+    plt.grid(b=None, which='major')
+    plt.show()
+    return df
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
