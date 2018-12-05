@@ -1,8 +1,0 @@
-# Notes
-
-
-
-1.) Implementation at Starr
-    - Have the Scraper table saved in your MySql environment at work. 
-    - Join table of our inforce policies with the claims data.    
-    - Set an automatic trigger that once a claim comes in for one of our accounts that the table is updated with a match and that an email goes out with this information as a warning. 
