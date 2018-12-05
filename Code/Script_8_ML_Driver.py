@@ -13,6 +13,7 @@ import mysql.connector
 import os
 import matplotlib.pyplot as plt
 from sklearn import preprocessing
+import numpy as np
 
 # KNN
 from sklearn.model_selection import train_test_split
@@ -44,7 +45,16 @@ mydb = mysql.connector.connect(
         database='SCA_SCRAPER')
 
 ### PREPARE DATASET_____________________________________________________________________
-ML_data_set = m8.prepare_dataset(mydb, 2015).fillna(0)
+
+# Year Range
+min_year_value = 2000
+max_year_value = 2018
+
+# Generate Dataset
+ML_data_set = m8.prepare_dataset(mydb, min_year = min_year_value, 
+                                       max_year = max_year_value).fillna(0)
+
+
 
 ### DATA ENCODING & SPLIT___________________________________________________________
 
@@ -57,99 +67,162 @@ X = df_encoded.drop('Target_case_status_binary', axis = 1)
 Y = df_encoded['Target_case_status_binary']
 
 
-m8.train_RandomForecast_predictor_pipeline_version(X,Y, 42)
-
-
-
 ### NEAREST NEIGHBOR________________________________________________________________
+# Test Different Number of Nearest Neighbors
 '''
-m8.train_KNN_predictor(X,Y)
+KNN_results = m8.train_KNN_predictor(X,Y, 62, min_year_value, max_year_value, 
+                                    plot = True)'''
+# Test Unique Select Num Neighbor, Generate Confusion Matrix
+'''
+knn_result = m8.train_KNN_single_neighbor_classifier(X, Y, NN = 2,
+                                            random_state_value = 62, 
+                                            result = 'precision_score')'''
+
+### LOGISTIC REGRESSION___________________________________________________________
+'''
+log_reg = m8.train_log_regressor_classifier(X, Y, 62, 'precision_score')
+print(log_reg)
 '''
 
-### KNN - ITERATE YEAR FILED TOWARD PRESENT_____________________________________
+### NAIVE BAYES__________________________________________________________________
 '''
-range_object = range(2000, 2017)
-m8.train_KNN_predictor_iterate_over_range_years(mydb, range_object, 3)
+Naive_bayes = m8.train_NaiveBayes_classifier(X,Y, 62, 'Multinomial', 'precision_score')
+print(Naive_bayes) '''
+
+### RANDOM FOREST__________________________________________________________________
 '''
+RF_classifier =  m8.train_RandomForecast_classifier(X,Y, 62, 'precision_score')
+print(RF_classifier)'''
 
 
 
-### MACHINE LEARNING PIPELINE_________________________________________________________
+### CLASSIFIER PIPELINE (NAIVE BAYES, RANDOM FOREST, LOGISTIC REGRESSION, KNN)_____________
 
-def create_ml_pipeline(range_object, random_state_value, C_value, write2excel, num_neighbors,
-                        limit_col_list, feature_selection_limits):
-    '''KNN & Logistic Regression algorithms'''
+def generate_ml_pipeline(X, Y, random_state_input, result_input, output):
 
-    # Capture Prediction Values
+    # Capture Classifier Results
     KNN_score_list = []
     Log_reg_score_list = []
-    BernoulliNB_score_list = []
+    NB_score_list = []
     RandomForest_score_list = []
 
-    # Capture min-year filed
-    min_year_filed = []
+    # Generate Predictions
+    KNN_result = m8.train_KNN_single_neighbor_classifier(X, Y, 5, random_state_input, result_input)
+    Log_reg_result = m8.train_log_regressor_classifier(X, Y, random_state_input, result_input)   
+    Naive_bayes_result = m8.train_NaiveBayes_classifier(X,Y, random_state_input, 'Multinomial', 
+                                                        result_input)
+    RandomForest_result =  m8.train_RandomForecast_classifier(X,Y, random_state_input, 
+                                                        result_input)
+    # Append Predictions to List
+    KNN_score_list.append(         round(KNN_result,2))
+    Log_reg_score_list.append(     round(Log_reg_result,2))
+    NB_score_list.append(          round(Naive_bayes_result,2))
+    RandomForest_score_list.append(round(RandomForest_result,2))
 
-    # Iterate over range object
-    for year in range_object:
-        # Append min year
-        min_year_filed.append(year)
-        # Prepare Data Set
-        ML_data_set = m8.prepare_dataset(mydb, year).fillna(0)
-        # Limit Features 2 Include In Algorithm
-        ML_data_set = m8.limit_feature_selection(ML_data_set, feature_selection_limits)
-        # OneHotEncode DataFrame
-        df_encoded = pd.get_dummies(ML_data_set)
-        # Step2:  Separate X & Y Variables
-        X = df_encoded.drop('Target_case_status_binary', axis = 1)
-        Y = df_encoded['Target_case_status_binary']
+    # Generate DataFrame
+    df_results = pd.DataFrame({}, index = [result_input])
+    df_results['KNN'] = KNN_score_list
+    df_results['Logistic_Reg'] = Log_reg_score_list
+    df_results['Naive_Bayes'] = NB_score_list
+    df_results['Random_Forest'] = RandomForest_score_list
 
-        # Generate Predictions
-        KNN_score_list.append(m8.train_KNN_predictor_pipeline_version(X, Y, 60, num_neighbors))
-        Log_reg_score_list.append(m8.train_log_regressor_pipeline_version(X, Y, 60, 1))
-        BernoulliNB_score_list.append(m8.train_NaiveBayes_predictor_pipeline_version(X,Y, random_state_value,
-                                                                                    'Bernoulli'))
-        RandomForest_score_list.append(m8.train_RandomForecast_predictor_pipeline_version(X,Y, random_state_value))
+    # Output
+    if output == 'write2excel':
+        # Write to Excel
+        m0.write_to_excel(df_results, 'MachineLearning_Pipeline_Output: {}'.format(result_input), 
+                          target_dir)
+     
+    elif output == 'plot':
+        # Plot Results
+        x_labels = ['KNN', 'Logistic_Regression', 'Naive_Bayes', 'Random_Forest']
+        
+        y_values = [df_results['KNN'][0], df_results['Logistic_Reg'][0], 
+                    df_results['Naive_Bayes'][0], df_results['Random_Forest'][0]
+                    ]
+        plt.bar(x_labels, y_values, align = 'center', alpha = 0.5) 
+        plt.xlabel('Algorithms', fontsize = 15)
+        plt.ylabel(result_input, fontsize = 15)
+        plt.xticks(fontsize = 15)
+        plt.yticks(fontsize = 15)
+        plt.title('''Machine Learning Algorithm Comparison
+                     Years:  From {} To {}
+                     Score:  {}'''.format(min_year_value, max_year_value, result_input), 
+                     fontsize = 20)
+        plt.show()
+       
 
-    # Write Results To Excel
-    if write2excel == True:
-        df = pd.DataFrame({}, index = [[x for x in range_object]])
-        df['KNN_test_score'] = KNN_score_list
-        df['LogReg_test_score'] = Log_reg_score_list
-        df['BernoulliNB_score'] = BernoulliNB_score_list
-        df['RandomForest_score'] = RandomForest_score_list
-        m0.write_to_excel(df, 'KNN_LogReg_NB_output', output_dir)
+    elif output == 'print':
+        print(df_results.transpose())
 
-    # Plotting
-    x_label_range_year = [x for x in range_object]
-    plt.plot(x_label_range_year, KNN_score_list, label = 'KNN_test_score')
-    plt.plot(x_label_range_year, Log_reg_score_list, label = 'Log_reg_test_score')
-    plt.plot(x_label_range_year, BernoulliNB_score_list, label = 'Bernoulli_NB_test_score')
-    plt.plot(x_label_range_year, RandomForest_score_list, label = 'RandomForest_test_score')
-    plt.ylabel('Accuracy', fontsize = 20)
-    plt.xlabel('Range of Years Case Was Filed' , fontsize = 20)
-    plt.title('''Comparison: KNN, Log_Reg, NaiveBayes, Random_Forest
-                 Year Range => {}
-                 Number of Neighbors => {}
-                 Features_dropped = {}'''.format('2000-2018', str(num_neighbors),
-                                                 feature_selection_limits)
-                 , fontsize = 30)
-    plt.legend(fontsize = 15)
-    plt.xticks(fontsize = 15)
-    plt.yticks(fontsize = 15)
-    plt.grid(b=None, which='major')
-    plt.show()
+# RUN PIPELINE______________________________________________________________________
 
-# Run Pipeline:
-'''
-range_object = range(2000, 2017)
-create_ml_pipeline(range_object, random_state_value = 42, C_value = 1, write2excel = True,
-                   num_neighbors = 3, limit_col_list = m8.list_categorical_features,
-                   feature_selection_limits = 'Drop_merger_value')
-'''
+generate_ml_pipeline(X, Y, random_state_input = 62, result_input = 'recall_score', 
+                    output = 'plot')
+
+
+    
 
 
 
-# Graph Comparison - Average Performance All Features vs Dropping Derived Values
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Graph Comparison - Average Performance All Features vs Dropping Derived Values____________
 '''
 m8.graph_comparison_performance_features()
 '''
+
+
+
+# Group Feature Importance by Major Cateogry________________________________________________
+
+def gen_feature_groups():
+    target_file = r'Feature_Importance_2018-12-03 17:29:11.854574.xlsx'
+    target_dir = r'/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/ML_Algorithm_Results'
+
+    Feature_importance_results = m8.record_feature_importance_ungrouped_categories(df, 
+                                    generate_sum_importance_ungrouped_features, 
+                                                     target_dir, target_file)
+    m0.write_to_excel(Feature_importance_results, 'Feature_importance_results_manual_generate', 
+            target_dir)
+    
+    return None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

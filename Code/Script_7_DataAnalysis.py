@@ -51,20 +51,13 @@ def get_count_null_values_by_attribute(mydb):
     return Count_null_values_SCA_data_table
 
 
-
-
-
-
-
-
-
 ## QUERY_1: CLAIM COUNT BY YEAR__________________________________________________________
 '''
 Function:  Returns the claim count grouped by year
 
 '''
 def get_claim_count_groupby_year(mydb):
-    df_claim_count_by_year = m7.sql_query(mydb, m7.query1_count_groupby_year())
+    df_claim_count_by_year = m7.sql_query_executor(mydb, m7.query1_count_groupby_year())
     return df_claim_count_by_year
 
 #claim_count_by_year = get_claim_count_groupby_year(mydb)
@@ -85,30 +78,39 @@ def get_case_status_count_groupby_year(mydb):
                         by year.
     '''
     # Get Count by Year, Case Status
-    df_count_groupby_year_case_status = m7.sql_query(mydb,
-            m7.query2_count_groupby_year_case_status())
+    df_count_groupby_year_case_status = m7.sql_query_executor(mydb,
+            m7.query2_count_groupby_year_case_status(year_min = 2000, year_max = 2018))
 
     # Limit Dataframe By Case Status Type
-    df_dismissed = m7.limit_dataframe_casetype_year(df_count_groupby_year_case_status,
-                                               'Dismissed', 2018)
+    df_dismissed = m7.limit_dataframe_casetype(df_count_groupby_year_case_status,
+                                                   'Dismissed')
 
     # Settled
-    df_settled = m7.limit_dataframe_casetype_year(df_count_groupby_year_case_status,
-                                              'Settled', 2018)
+    df_settled = m7.limit_dataframe_casetype(df_count_groupby_year_case_status,
+                                                  'Settled')
 
     # Ongoing
-    df_ongoing = m7.limit_dataframe_casetype_year(df_count_groupby_year_case_status,
-                                              'Ongoing', 2018)
-    dict_new = {}
-    df_new = pd.DataFrame(dict_new, index = ['2010', '2011', '2012', '2013', '2014',
-                                            '2015', '2016', '2017'])
+    df_ongoing = m7.limit_dataframe_casetype(df_count_groupby_year_case_status,
+                                                  'Ongoing')
+
+    #print(df_dismissed)
+    #print(df_settled)
+    #print(df_ongoing)
+
+    df_new = pd.DataFrame({}, index = df_dismissed['YEAR_FILED'])
     df_new['Dismissed'] = list(df_dismissed['Count'])
     df_new['Settled'] = list(df_settled['Count'])
-    df_new['Ongoing'] = list(df_ongoing['Count'])
+    #df_new['Ongoing'] = list(df_ongoing['Count'])
     df_new['Percent_Dismissed'] = round(df_new['Dismissed'] /
-                                (df_new['Dismissed'] + df_new['Settled'] + df_new['Ongoing']),2)
+                            (df_new['Dismissed'] + df_new['Settled']),2)
     return df_new
 
+
+test = get_case_status_count_groupby_year(mydb)
+
+print('Data Range:  From 2001 to 2017')
+print('Sum Dismissed => {}'.format(sum(test['Dismissed'])))
+print('Sum Settled =>   {}'.format(sum(test['Settled'])))
 
 
 

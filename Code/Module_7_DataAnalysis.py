@@ -59,7 +59,7 @@ def query1_count_groupby_year():
     return Query
 
 
-def query2_count_groupby_year_case_status():
+def query2_count_groupby_year_case_status(year_min, year_max):
     '''Purpose:  Get number of lawsuits filled by year'''
 
     Query = '''
@@ -68,15 +68,16 @@ def query2_count_groupby_year_case_status():
             ,YEAR_FILED
             ,COUNT(defendant_name) AS 'Count'
             FROM SCA_data
-            WHERE YEAR_FILED > 2009
+            WHERE YEAR_FILED > {} 
+            AND YEAR_FILED < {}
             AND case_status IS NOT NULL
             GROUP BY case_status, YEAR_FILED;            
 
-            '''
+            '''.format(year_min, year_max)
     return Query
 
 
-def limit_dataframe_casetype_year(df, case_type, year):
+def limit_dataframe_casetype(df, case_type):
     '''
     Purpose:    Index the original sql query to return only data for dismissed and < 2018 > 2010
     Input:      dataframe grouped by year and case status
@@ -85,10 +86,8 @@ def limit_dataframe_casetype_year(df, case_type, year):
     return:     filtered dataframe for status and year. 
     '''
     limit_case_status = df.case_status == case_type
-    limit_year = df.YEAR_FILED != year
     df_index_case_status = df[limit_case_status]
-    df_dismissed_final = df_index_case_status[limit_year]
-    return df_dismissed_final
+    return df_index_case_status
 
 
 def get_settled(df):

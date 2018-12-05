@@ -57,9 +57,11 @@ docs/_build/
 # PyBuilder
 target/
 
-# Excel files
+# Chris files to ignore
 *.xlsx
 *.png
+*.csv
+*.swp
 
 # Exclude folders
 ML_Algorithm_Results/

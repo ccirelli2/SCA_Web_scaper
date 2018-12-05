@@ -6,36 +6,46 @@ Script:     This script contains the functions that will be used to prepare the 
 
 ## Import Packages
 import pandas as pd
+import sklearn
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import BernoulliNB
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 
 ## Import Project Modules
 import Module_7_DataAnalysis as m7
 import Module_0_utility_functions as m0
 
+
 ## Directory Object
 output_dir = r'/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/ML_Algorithm_Results'
 
+'''We need to modify the first function below to allow the user to limit the data by min
+and max year as we did in Module 7.  This will ensure that we choose a data set with
+an equivalent number of dismissed and settled cases'''
 
 
 
+### DATA RETREIVAL & TRANSFORMATION___________________________________________________________
 
-def sql_query_machine_learning_data_set(year):
+def sql_query_machine_learning_data_set(min_year, max_year):
     '''Purpose:  Initial query of db to retrieve data for ML application'''
     Query = '''SELECT *
                FROM SCA_data
                WHERE case_status IS NOT NULL
                AND YEAR_FILED > {}
+               AND YEAR_FILED < {}
                AND case_status != 'ongoing'
                AND Plaintiff_firm != 'Error'
                AND Judge != 'None'
                AND CHAR_LENGTH(Judge) > 2
-               ;'''.format(year)
+               ;'''.format(min_year, max_year)
     return Query
 
 
@@ -78,6 +88,7 @@ def transform_plaintiff_firm(df):
     df_final = df.drop(labels = 'Plaintiff_firm', axis = 1)
     return df_final
 
+
 def get_list_attributes_by_type(Type):
 
     if Type == 'categorical':
@@ -96,7 +107,8 @@ def get_list_attributes_by_type(Type):
        'Class_Duration']
 
 
-### ONE HOT ENCODING PREPARATION____________________________________________________
+
+### One Hot Encode Data------------------------------------------------------------------
 def Encode_categorical_data(df, List_attributes_by_type):
     le = preprocessing.LabelEncoder()
     Attributes_categorical = df[List_attributes_by_type]
@@ -104,9 +116,11 @@ def Encode_categorical_data(df, List_attributes_by_type):
     return Attributes_encoded
 
 
-### Driver Function - Prepare Data Set
+
+### DRIVER FUNCTION - PREPARE DATA SET FOR ML ALGORITHM----------------------------------
 '''Includes all the above functions to prepare dataset'''
-def prepare_dataset(conn, year):
+
+def prepare_dataset(conn, min_year, max_year):
     '''
     Purpose:    Prepare the dataset that we will use for our machine learning model
     Conn:       mysql connection
@@ -116,7 +130,8 @@ def prepare_dataset(conn, year):
 
     # 1.) Import SCA_data
     '''Input:  Year_Filed to exclude'''
-    df_SCA_data_table = m7.sql_query_executor(conn, sql_query_machine_learning_data_set(year))
+    df_SCA_data_table = m7.sql_query_executor(conn, 
+                        sql_query_machine_learning_data_set(min_year, max_year))
 
     # 2.) Drop Columns - Defendant_address, case_summary, page_number
     '''Based on our preliminary analysis, these two columns were not propertly scraped and contain
@@ -138,21 +153,23 @@ def prepare_dataset(conn, year):
     # 4.) Transform Plaintiff Firm - Limit to first 25 Characters
     df_transform_plaintiff_firm = transform_plaintiff_firm(df_transform_case_status)
 
-
-
     # Return Transformed Dataset
     return df_transform_plaintiff_firm
 
 
 
 
-### ALGORITHMS_______________________________________________________________
+##########################           ALGORITHMS                 ###############################
 
 
 
-## Nearest Neighbor----------------------------------------------------------
+### KNN____________________________________________________________________________________
 
-def train_KNN_predictor(X, Y):
+
+# Test Number of Neighbors-----------------------------------------------------------------
+
+def train_KNN_predictor(X, Y, random_state_value, min_year, max_year, write_2_excel = False, 
+                        plot = False, results = 'DataFrame'):
     '''Documentation:
     random_state:      seed used by the random generator.
     stratify:          separation of data into homogenious groups before sampling.
@@ -164,11 +181,19 @@ def train_KNN_predictor(X, Y):
     x_train, x_test, y_train, y_test = train_test_split(
                                         X, Y,
                                         stratify = Y,
-                                        random_state = 66)
+                                        random_state = random_state_value, 
+                                        test_size = .15)
+
+    # Ratio Dissmissed to Settled;
+    Dismissal_percentage = round(sum(Y) / len(Y), 2)
+
+    # Case Count
+    Case_count = len(Y)
 
     # Lists to Capture Predictions
     accuracy_training_list = []
     accuracy_test_list = []
+    dismissal_percentage_list = [Dismissal_percentage for x in range(1,10)]
 
     # Range of Nearest Neighbors
     num_range_neighbors = range(1,10)
@@ -178,175 +203,253 @@ def train_KNN_predictor(X, Y):
         knn = KNeighborsClassifier(n_neighbors = num)
         # Fit algorithm to training data
         knn.fit(x_train, y_train)
+        y_predict = knn.predict
         accuracy_training_list.append(knn.score(x_train, y_train))
         accuracy_test_list.append(knn.score(x_test, y_test))
 
-    # Write Results To Excel
+
+    # Create DataFrame for scores
     df = pd.DataFrame({}, index = [2,3,4,5,6,7,8,9,10])
     df['Accuracy_Training'] = accuracy_training_list
     df['Accuracy_Test'] = accuracy_test_list
-    m0.write_to_excel(df, 'KNN_output', output_dir)
+    df['Dismissal_Percentage'] = dismissal_percentage_list
 
-    # Plotting
-    plt.plot(num_range_neighbors, accuracy_training_list, label = 'Accuracy of training')
-    plt.plot(num_range_neighbors, accuracy_test_list, label = 'Accuracy of test')
-    plt.ylabel('Accuracy', fontsize = 20)
-    plt.xlabel('Number of Neighbors' , fontsize = 20)
-    plt.title('Performance KNN Algorithm SCA Dataset', fontsize = 30)
-    plt.legend(fontsize = 15)
-    plt.xticks(fontsize = 15)
-    plt.yticks(fontsize = 15)
-    plt.grid(b=None, which='major')
-    plt.show()
-
-    # Return Results in df object
-    return df
-
-
-
-def train_KNN_predictor_iterate_over_range_years(mydb, range_object, num_neighbors):
-
-    '''Documentation
-    Objective:          The objective is to test the hypothesis that there will be a
-                        positive relationship between the accuracy of our model and
-                        using more recent data.  The underlying assumption is that due
-                        to a plethora of reasons, including by not limited to changes
-                        in jurisprudence and status, how the outcome of cases are decided
-                        will be more homogeneous the nearer we are to the present.
-    range_object:       This object will determine which data we pull into our algorithm
-                        organized by yearself.
-    prepare_dataset:    the 'year' input into this function will restrict the dataset
-                        to years greater than this input.  For example, if the input is
-                        2010, then the algorithm will only pull data for lawsuits that
-                        were filed after this year.
-    num_neighbors:      The user may select the number of nearest neighbor nodes to use in the
-                        algorithm.  Based on the above function where we iterated over a range
-                        of 1-10 nearest neighbors, it appears that 3 provides for the best
-                        prediction score.
-    ML_data_set         fillna:      Fill all None values with a 0. Should only apply to our
-                        binary features.
-    '''
-
-    # Lists objects to capture results
-    year_list = []
-    accuracy_train_score_list = []
-    accuracy_test_score_list = []
-
-    # Iterate over each year in range
-    for year in range_object:
-
-        # Append to list year
-        year_list.append(year)
-
-        # Prepare Data Set
-        ML_data_set = prepare_dataset(mydb, year).fillna(0)
-        # OneHotEncode DataFrame
-        df_encoded = pd.get_dummies(ML_data_set)
-        # Step2:  Separate X & Y Variables
-        X = df_encoded.drop('Target_case_status_binary', axis = 1)
-        Y = df_encoded['Target_case_status_binary']
-
-        # Split Data into Train/Test
-        x_train, x_test, y_train, y_test = train_test_split(
-                                        X, Y,
-                                        stratify = Y,
-                                        random_state = 66)
-        # Instantiate KNN Algorithm
-        knn = KNeighborsClassifier(n_neighbors = num_neighbors)
-
-        # Fit algorithm to training data
-        knn.fit(x_train, y_train)
-        accuracy_train_score_list.append(knn.score(x_train, y_train))
-        accuracy_test_score_list.append(knn.score(x_test, y_test))
 
     # Write Results To Excel
-    df = pd.DataFrame({}, index = [[x for x in range_object]])
-    df['Accuracy_Training'] = accuracy_train_score_list
-    df['Accuracy_Test'] = accuracy_test_score_list
-    m0.write_to_excel(df, 'KNN_output', output_dir)
+    if write_2_excel == True:
+        m0.write_to_excel(df, 'KNN_output', output_dir)
 
     # Plotting
-    x_label_range_year = [x for x in range_object]
-    plt.plot(x_label_range_year, accuracy_train_score_list, label = 'Accuracy of training')
-    plt.plot(x_label_range_year, accuracy_test_score_list, label = 'Accuracy of test')
-    plt.ylabel('Accuracy', fontsize = 20)
-    plt.xlabel('Range of Years Case Was Filed' , fontsize = 20)
-    plt.title('''Performance KNN Algorithm SCA Dataset
-                 Year Range => {}
-                 Number of Neighbors => {}'''.format('2000-2018', str(num_neighbors))
-                 , fontsize = 30)
-    plt.legend(fontsize = 15)
-    plt.xticks(fontsize = 15)
-    plt.yticks(fontsize = 15)
-    plt.grid(b=None, which='major')
-    plt.show()
+    if plot == True:
+        plt.plot(num_range_neighbors, accuracy_training_list, label = 'Accuracy of training')
+        plt.plot(num_range_neighbors, accuracy_test_list, label = 'Accuracy of test')
+        plt.plot(num_range_neighbors, dismissal_percentage_list, label = 'Dismissal Percentage')
+        plt.ylabel('Accuracy', fontsize = 20)
+        plt.xlabel('Number of Neighbors' , fontsize = 20)
+        plt.title('''Performance KNN Algorithm SCA Dataset
+                 For Years: {} to {}
+                 Case Count => {}
+                 Ratio Dismissed to Total Cases => {}'''.format(min_year, max_year, Case_count, 
+                 Dismissal_percentage), fontsize = 25)
+        plt.legend(fontsize = 15)
+        plt.xticks(fontsize = 15)
+        plt.yticks(fontsize = 15)
+        plt.grid(b=None, which='major')
+        plt.show()
 
-    # Return Results in df object
-    return df
-
-
-
-## Pipeline Setup------------------------------------------------------------------
-
-def train_log_regressor_pipeline_version(X, Y, random_state_value,  C_value):
-    # Split Data
-    x_train, x_test, y_train, y_test = train_test_split(X, Y,
-                                                    stratify = Y,
-                                                    random_state = random_state_value)
-    # Instantiate Model
-    log_reg = LogisticRegression(C = C_value)
-    log_reg.fit(x_train, y_train)
-
-    # Return Test Score
-    return log_reg.score(x_test, y_test)
+    # Confusion Matrix
+    if results == 'Confusion_matrix':
+        clf_predict_y_test = knn.predict(y_test)
+        clf_confusion_matrix = confusion_matrix(y_test, clf_predict_y_test)
+        return clf_confusion_matrix 
+    
+    # Results in Dataframe
+    if results == 'DataFrame':
+        return df
+    #-------------------------------------------------------------------------------
 
 
-def train_KNN_predictor_pipeline_version(X, Y, random_state_value, num_neighbors):
-    # Split dataset
+
+
+## KNN - Single Neighbor - Generate Classification Report------------------------------------------
+
+def train_KNN_single_neighbor_classifier(X, Y, NN, random_state_value, result):
+    '''
+    x_tain , y_train:  This represents the training data for our algorithm.  x_train is our
+                       features and y_train the target. 
+    y_pred_class:      Once trained, we input the x_test data, which our model has not yet seen, 
+                       from which the model generates a prediction.  That prediction is saved to
+                       y_pred_class object.  We then compare this prediction to the actual y_values
+                       which are saved in y_test.  Its important to remember that x_test is the 'test'
+                       data that our model has not yet seen. Hence the word 'test'.  
+    '''
+    # Split Data Into Training & Test Sets:
     x_train, x_test, y_train, y_test = train_test_split(
                                         X, Y,
                                         stratify = Y,
-                                        random_state = random_state_value)
+                                        random_state = random_state_value,
+                                        test_size = .15)
+
     # Instantiate KNN Algorithm
-    knn = KNeighborsClassifier(n_neighbors = num_neighbors)
+    knn = KNeighborsClassifier(n_neighbors = NN)
+
     # Fit algorithm to training data
     knn.fit(x_train, y_train)
     
-    # Return prediction
-    return knn.score(x_test, y_test)
+    # Predict for Test Data
+    '''Feed our model the x_test data (features) and make a prediction for our y-variable'''
+    y_predict = knn.predict(x_test)
+
+    # Generate Results
+    if result == 'Classification_report':
+        '''We now compare our y-prediction to the actual y saved in the y_test object'''
+        knn_class_report_train = sklearn.metrics.classification_report(y_test, y_predict)
+        return knn_class_report_train
+    elif result == 'f1_score':
+        knn_f1_score = sklearn.metrics.f1_score(y_test, y_predict)
+        return knn_f1_score
+    elif result == 'precision_score':
+        knn_precision_score = sklearn.metrics.precision_score(y_test, y_predict)
+        return knn_precision_score
+    elif result == 'recall_score':
+        knn_recall_score = sklearn.metrics.recall_score(y_test, y_predict)
+        return knn_recall_score
+
+    
+    #-------------------------------------------------------------------------------
+
+
+## LOGISTIC REGRESSION________________________________________________________________
+
+
+def train_log_regressor_classifier(X, Y, random_state_value, result):
+    x_train, x_test, y_train, y_test = train_test_split(X, Y,
+                                                    stratify = Y,
+                                                    random_state = random_state_value)
+    # Standardize Data
+    from sklearn.preprocessing import StandardScaler
+    sc = StandardScaler()
+    
+    #x_train_sc = sc.fit_transform(x_train)
+    #x_test_sc = sc.fit_transform(x_test)
+
+    # Instantiate Model & Generate Prediction
+    log_reg = LogisticRegression()
+    log_reg.fit(x_train, y_train)
+    y_predict = log_reg.predict(x_test)
+
+    # Generate Results
+    if result == 'Classification_report':
+        log_reg_class_report = sklearn.metrics.classification_report(y_test, y_predict)
+        return log_reg_class_report
+    elif result == 'f1_score':
+        log_reg_f1_score = sklearn.metrics.f1_score(y_test, y_predict)
+        return log_reg_f1_score
+    elif result == 'precision_score':
+        log_reg_precision_score = sklearn.metrics.precision_score(y_test, y_predict)
+        return log_reg_precision_score
+    elif result == 'recall_score':
+        log_reg_recall_score = sklearn.metrics.recall_score(y_test, y_predict)
+        return log_reg_recall_score
+
     
 
 
-def train_NaiveBayes_predictor_pipeline_version(X,Y, random_state_value, NB_type):
+    #-------------------------------------------------------------------------------
+
+
+## NAIVE BAYES______________________________________________________________________
+
+'''DOCUMENTATION:
+Bernoulli Naive Bayes:  The binomial model is useful if your feature vectors 
+                        are binary (i.e., 0s and 1s). One application would be text 
+                        classification with a bag of words model where the 0s 1s are 
+                        "word occurs in the document" and "word does not occur 
+                        in the document"
+
+Multinomial Naive:      Bayes The multinomial naive Bayes model is typically used for discrete counts.                         E.g., if we have a text classification problem, we can take the idea 
+                        of bernoulli trials one step further and instead of "word occurs in the 
+                        document" we have "count how often word occurs in the document", 
+                        you can think of it as "number of times outcome number x_i is observed 
+                        over the n trials"
+
+Gaussian Naive Bayes:    Here, we assume that the features follow a normal distribution. 
+                         Instead of discrete counts, we have continuous features (e.g., 
+                         the popular Iris dataset where the features are sepal width, petal 
+                         width, sepal length, petal length).
+Source:                  http://users.sussex.ac.uk/~christ/crs/ml/lec02b.html
+'''
+
+
+def train_NaiveBayes_classifier(X,Y, random_state_value, NB_type, result):
 
     x_train, x_test, y_train, y_test = train_test_split(X, Y, 
                                                         stratify = Y, 
                                                         random_state = random_state_value)
-    if NB_type == 'Gaussian':
-        clf_NB = GaussianNB()
-        clf_NB.fit(x_train, y_train)
-        return clf_NB.score(x_test, y_test)
+    # Multinomial Model:-------------------------
+    if NB_type == 'Multinomial':
+        NB_multi = MultinomialNB(alpha = 1)
+        NB_multi.fit(x_train, y_train)
+        y_predict = NB_multi.predict(x_test)
+        
+        # Generate Results
+        if result == 'Classification_report':
+            NB_class_report = sklearn.metrics.classification_report(y_test, y_predict)
+            return NB_class_report
+        elif result == 'f1_score':
+            NB_f1_score = sklearn.metrics.f1_score(y_test, y_predict)
+            return NB_f1_score
+        elif result == 'precision_score':
+            NB_precision_score = sklearn.metrics.precision_score(y_test, y_predict)
+            return NB_precision_score
+        elif result == 'recall_score':
+            NB_recall_score = sklearn.metrics.recall_score(y_test, y_predict)
+            return NB_recall_score
 
+    # Bernoulli Model----------------------------
     elif NB_type == 'Bernoulli':
-        clf_NB = BernoulliNB()
-        clf_NB.fit(x_train, y_train)
-        return clf_NB.score(x_test, y_test)
+        NB_bern = BernoulliNB()
+        NB_bern.fit(x_train, y_train)
+        y_predict = NB_bern.predict(x_test)
+
+        # Generate Results
+        if result == 'Classification_report':
+            NB_class_report = sklearn.metrics.classification_report(y_test, y_predict)
+            return NB_class_report
+        elif result == 'f1_score':
+            NB_f1_score = sklearn.metrics.f1_score(y_test, y_predict)
+            return NB_f1_score
+        elif result == 'precision_score':
+            NB_precision_score = sklearn.metrics.precision_score(y_test, y_predict)
+            return NB_precision_score
+        elif result == 'recall_score':
+            NB_recall_score = sklearn.metrics.recall_score(y_test, y_predict)
+            return NB_recall_score
+
+    #-------------------------------------------------------------------------------
+        
+
+# RANDOM FOREST_______________________________________________________________________________
 
 
-def train_RandomForecast_predictor_pipeline_version(X,Y, random_state_value):
+def train_RandomForecast_classifier(X,Y, random_state_value, result):
 
     x_train, x_test, y_train, y_test = train_test_split(X, Y, 
                                                         stratify = Y)
-                 
+    
+    # Generate Prediction
     clf_RF = RandomForestClassifier(n_estimators = 100)
     clf_RF.fit(x_train, y_train)
-    Feature_important = list(map(lambda x: round(x,2), clf_RF.feature_importances_))
-    df = pd.DataFrame({}, index = X.columns)
-    df['Feature Importance'] = Feature_important
-    m0.write_to_excel(df, 'Feature_Importance', output_dir)
-    
-    # Return Prediction
-    return clf_RF.score(x_test, y_test)
+    y_predict = clf_RF.predict(x_test)
+
+    # Generate Results
+    if result == 'Classification_report':
+        NB_class_report = sklearn.metrics.classification_report(y_test, y_predict)
+        return NB_class_report
+    elif result == 'f1_score':
+        NB_f1_score = sklearn.metrics.f1_score(y_test, y_predict)
+        return NB_f1_score
+    elif result == 'precision_score':
+        NB_precision_score = sklearn.metrics.precision_score(y_test, y_predict)
+        return NB_precision_score
+    elif result == 'recall_score':
+        NB_recall_score = sklearn.metrics.recall_score(y_test, y_predict)
+        return NB_recall_score
+    elif result == 'feature_importance':
+        Feature_important = clf_RF.feature_importances_
+        df = pd.DataFrame({}, index = X.columns)
+        df['Feature Importance'] = Feature_important
+        m0.write_to_excel(df, 'Feature_Importance', output_dir)
+        return clf_RF.score(x_test, y_test)
+    #-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
 
 
 
@@ -377,10 +480,6 @@ def limit_feature_selection(df, limit_selection):
 
 
 
-
-
-
-
 # Graph Comparison - Average Performance All Features vs Dropping Derived Values
 
 def graph_comparison_performance_features():
@@ -405,6 +504,60 @@ def graph_comparison_performance_features():
     plt.grid(b=None, which='major')
     plt.show()
     return df
+
+
+
+# Feature Importance - Un-groupped Categories
+'''
+Because of the one-hot-encoding certain features where broken into their subgroups.
+Example the feature judge has a column for every single judge.  The below functions 
+rever these columns back to the single lvl features and then sum the feature importance
+exported from our model. 
+'''
+
+def generate_sum_importance_ungrouped_features(df, Feature):
+    Feature_importance_list = []
+
+    for x in df['Category']:
+        if Feature in x:
+            Feature_importance_list.append(1)
+        else:
+            Feature_importance_list.append(0)
+    df[Feature + '_Importance'] = Feature_importance_list
+    df_limit_feature = df[Feature +'_Importance'] == 1
+    df_final = df[df_limit_feature]
+
+    Feature_importance_sum = sum(df_final['Feature Importance'])
+
+    return Feature_importance_sum
+
+def record_feature_importance_ungrouped_categories(df, grouping_function, target_dir, target_file):
+
+    # Load File
+    os.chdir(target_dir)
+    df = pd.read_excel(target_file)
+
+
+    Dict_feature_importance = {}
+    Ungrouped_feature_list = ['Judge', 'Court', 'Plaintiff_firm', 
+                              'Headquarters', 'Sector', 'Industry']
+    
+    
+    for feature in Ungrouped_feature_list:
+        feature_importance = round(grouping_function(df, feature), 4)
+        Dict_feature_importance[feature] = feature_importance
+
+    df = pd.DataFrame(Dict_feature_importance, index = ['Feature_importance']).transpose()
+
+    return df
+
+
+
+
+
+
+
+
 
 
 
