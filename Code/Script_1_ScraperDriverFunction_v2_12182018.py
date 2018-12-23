@@ -46,7 +46,7 @@ import Module_5_Scraper_Automation as m5
 mydb = mysql.connector.connect(
         host="localhost",
         user="ccirelli2",
-        passwd="Work4starr",
+        passwd="",
         database='SCA_SCRAPER')
 
 
