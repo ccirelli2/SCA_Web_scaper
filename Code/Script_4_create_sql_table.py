@@ -24,7 +24,7 @@ cnx = mysql.connector.connect(user='joe', database='test_database')
 mydb = mysql.connector.connect(
         host="localhost", 
         user="ccirelli2", 
-        passwd="Work4starr", 
+        passwd="", 
         database='SCA_SCRAPER'
         )
 
