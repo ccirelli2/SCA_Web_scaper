@@ -12,7 +12,7 @@ from datetime import datetime
 import mysql.connector
 
 import Module_1_Scraper_DataPoints as m1
-import Module_2_Scraper_CaseSummary as m2
+import Module_2_Scraper_Scrape_CaseSummary as m2
 import Module_3_Dict_Derived_Values as m3
 
 
@@ -26,6 +26,8 @@ def insert_function_2(mydb, table, action, row_number, obj_name, data_obj):
     data_obj:       The column for which we are looking to update. 
     '''
     
+    # Specify MySQL Table to Insert Data To
+
     mycursor = mydb.cursor()
 
     if action == 'create_row':
@@ -122,10 +124,13 @@ def main_scraper_function(mydb, table, bsObj, Count):
                       obj_name ='Sector', data_obj = Sector)
     
     # Case Summary
-    '''
+    import string
+    Punct_list = string.punctuation
     Case_summary = m1.get_case_summary(bsObj)
-    insert_function_2(mydb, action = 'update', row_number = Count, 
-                      obj_name = 'Case_Summary', data_obj = Case_summary)'''
+    case_summary_clean = ('').join(list(filter(lambda x: (x not in Punct_list), Case_summary)))
+
+    insert_function_2(mydb, table, action = 'update', row_number = Count, 
+                      obj_name = 'case_summary', data_obj = str(case_summary_clean))
 
     # Industry
     Industry = m1.get_company_data_points(bsObj, 'Industry')
@@ -328,7 +333,11 @@ def main_scraper_function(mydb, table, bsObj, Count):
         if Match == 1:
             insert_function_2(mydb, table, action = 'update',row_number = Count,
             obj_name = key, data_obj = 1)
-
+        
+        else:
+            insert_function_2(mydb, table, action = 'update', row_number = Count, 
+            obj_name = key, data_obj = 0)
+        
 
     # END FUNCTION
 

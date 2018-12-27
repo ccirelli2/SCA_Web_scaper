@@ -75,15 +75,22 @@ def type_of_scraper_run(run_type, mydb):
 
 
 
-def get_last_page_scraped(mydb):
+def get_last_page_scraped(mydb, table):
+    '''
+    Myresult = [('http://securities.stanford.edu/filings-case.html?id=103165',)]
+               Therefore, our first index returns the string within this list. 
+               The second splits the string on = and returns the second value of that
+               list, which should be our page number that coincides with the actual
+               url. 
+    '''
     # Get last page number scraped
     mycursor        = mydb.cursor()
-    sql             = "SELECT max(page_number) FROM SCA_data"
+    sql             = "SELECT max(page_number) FROM {}".format(table)
     mycursor.execute(sql)
     myresult        = mycursor.fetchall()
-    Last_count      = myresult[0][0]
-
-    return Last_count
+    last_page       = myresult[0][0].split('=')[1]
+    
+    return last_page
 
 
 def check_page_blank(Url, beginning_page):
