@@ -63,7 +63,8 @@ target/
 *.csv
 *.swp
 *.swo
-
+*.RData
+*.Rhistory
 
 # Exclude folders
 ML_Algorithm_Results/
