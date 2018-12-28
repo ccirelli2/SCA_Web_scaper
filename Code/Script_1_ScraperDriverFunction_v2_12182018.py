@@ -67,16 +67,20 @@ Url = 'http://securities.stanford.edu/filings-case.html?id='
 
 ### SCRAPER_______________________________________________________________________
 
-def SCA_data_scraper(Url, add_pages = 20, Run_type = 'Start_from_last_page', email_report = True):  
-    '''Input:
+def SCA_data_scraper(Url, add_pages, Run_type, report_output_type, password):  
+    
+    '''
+    INPUTS
+    Url:    Stanford Law Web Page - Target of scraper                
     Run_type:       Two options, Reset or Start_from_last_lage
     Url:            The web page from which we are scraping data
-    add_pages:    Using the 'Start_from_last_page selection, pages_2_add is an additional
+    add_pages:      Using the 'Start_from_last_page selection, pages_2_add is an additional
                     page to add to the 'Beginning_page' object.  Sometimes the webpage manager
                     choses to insert blank pages into the numerical sequence of pages, which
                     trips up the scraper. 
-        
-    
+    report_output   Type of output the user wants to generate.  Used only for the 'Start_from_last_page
+                    selection (need to sync up with driver function for gen reports.
+    password        email account password (omitt from base script)
     '''
     # Table Object
     table = 'SCA_DATA3_TEST'
@@ -165,10 +169,6 @@ def SCA_data_scraper(Url, add_pages = 20, Run_type = 'Start_from_last_page', ema
             bsObj = BeautifulSoup(html.read(), 'lxml')
 
             # Check to See if Page is Blank
-            '''Blank Page:      Don't scrape page and most to next 
-               the range of pages from beginning until end.  This creates issues for the scraper.  
-               If we hit a blank page, the code will increment the count but skip scraping the page. 
-            '''
             Tags = bsObj.find('section', {'id':'company'})
             Defendant = Tags.find('h4').get_text().split(':')[1]
             regex_exp = re.compile(' *[A-Z]+')
@@ -178,27 +178,53 @@ def SCA_data_scraper(Url, add_pages = 20, Run_type = 'Start_from_last_page', ema
             if bool(search) is True:
                 # Load Main Scraper Function
                 m4.main_scraper_function(mydb, table, bsObj, web_page_address)
-                
-            # Elif Blank - Just increase count & move to the next page
-                # do nothing
+            # Otherwise, go to next page
+            else:
+                pass
+
+            
+        # Generate Report (Email or Print)-----------------------------------------
         
-        # Print Summary Report Upon Completion 
-        m0.driver_function_post_run_scraper_status_report(mydb, 'Start_from_last_page', 
-                                        Beginning_page, End_page)
+        # Otherwise print results
+        if report_output_type == 'print_results'
+            m0.driver_function_post_run_scraper_report(mydb, Beginning_page,
+                End_page, 'print_results')
 
-        # Email Report
-
-        if email_report = True:
+        if report_output_type == 'generate_email':
+            # Time Report Generated
+            report_gen_time = str(datetime.now())
+            
+            # DataFrame w/ Results
+            df_results = m0.driver_function_post_run_scraper_status_report(mydb, Beginning_page, 
+                                                                 End_page, 'dataframe_w_results')
+            # Number Of Companies Added to Table
+            num_companies_added = len(df_results['defendant_name'])
+            
+            # Generate Text File - Body of Email
+            '''function returns str of filename + path'''
+            email_body_filename = m0.driver_function_post_run_scraper_status_report(mydb, Beginning_page, 
+                                                                 End_page, 'email_text_body')
+            
+            # Generate Email
             m0.send_email(
                     from_address = 'intellisurance@gmail.com', 
                     to_address   = 'intellisurance@gmail.com', 
                     timeout_sec  = 5, 
-                    password     = 'Work4*****', 
-                    message      = 'test message from python script')
-
+                    password     = password, 
+                    message      = '''
+                    From: Chris Cirelli <intellisurance@gmail.com>
+                    To: Chris Cirelli <intellisurance@gmail.com>
+                    Subject:  Securities Class Action Scraper Report
+                    Time           =>  {}
+                    New cases      =>  {}
+                    Companies sued =>  {}'''.format(
+                        report_gen_time, num_pages_scraped, str_companies_added))
+         
 
     # Function Returns Nothing
     return None
+
+
     # ---------------------------------------------------------------------------------------
 
 
@@ -208,7 +234,8 @@ def SCA_data_scraper(Url, add_pages = 20, Run_type = 'Start_from_last_page', ema
 # RUN SCRAPER FUNCTION_____________________________________________________________________
 
 
-#SCA_data_scraper(Url, add_pages = 20, Run_type = 'Start_from_last_page', email_report = True)
+SCA_data_scraper(Url, add_pages = 20, Run_type = 'Start_from_last_page', email_report = True, 
+                'password')
 
 
 

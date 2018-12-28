@@ -9,7 +9,17 @@ range of functions and different scripts.
 import os
 from datetime import datetime
 import pandas as pd
-import smtplib                  # to send emails
+
+# Modules For Sending Emails
+import smtplib
+from email.message import EmailMessage
+from email.mime.application import MIMEApplication
+from email.utils import COMMASPACE, formatdate
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+
 
 
 
@@ -104,11 +114,11 @@ def get_num_pages_scraped(mydb, Beginning_page):
         return x['COUNT(*)']   
 
 
-def get_summary_data_companies_sued(mydb, Beginning_page):
+def get_df_data_companies_sued(mydb, Beginning_page):
 
     mycursor = mydb.cursor(dictionary = True)
     sql_command = '''
-        SELECT  page_number, defendant_name, filling_date, case_summary
+        SELECT  *
         FROM SCA_DATA3_TEST
         WHERE SUBSTRING_INDEX(page_number, '=', -1) > {}'''.format(Beginning_page)
     
@@ -117,53 +127,123 @@ def get_summary_data_companies_sued(mydb, Beginning_page):
     return df
 
 
-def driver_function_post_run_scraper_status_report(mydb, Run_type, Beginning_page, End_page):
-    '''Input:   Run_type, End_page
-       Output:  Excel (for now)
+def driver_function_post_run_scraper_report(mydb, Beginning_page, End_page, report_output):
+    '''
+    Input:      mydb:  db connection 
+                Return_value:  Either number of pages scraped or df_companies_sued
+    Output:     Return df & write to Excel or standard output. 
     
     Functions:
                 1.) Define first and last pages scraped
                 2.) Define cases scraped - return dataframe
                     Derived values:  try to create a key of the attributes
-                3.) If Starr is on the account
-                4.) Prediction
-                5.) Similar cases
+                3.) If Starr is on the account (tbd)
+                4.) Prediction (tbd)
+                5.) Similar cases (tbd)
     '''
     
-    # Number of pages scraped
-    num_pages_scraped = get_num_pages_scraped(mydb, Beginning_page)
 
-    # Dataframe - Companies Sued, Case Summary
-    df_companies_sued = get_summary_data_companies_sued(mydb, Beginning_page)
+    # Print Results to Standard Output
+    if report_output == 'print_results':
+        df_companies_sued = get_df_data_companies_sued(mydb, Beginning_page)
+        # For now lets just print the results
+        print('\n Progress Report:')
+        print('Number of pages scraped {}\n'.format(get_num_pages_scraped(mydb, Beginning_page)))
+        print('The following companies were added to the database: {}'.format(
+            ', '.join([x.split("\n")[0] for x in df_companies_sued['defendant_name']])))
 
-    # For now lets just print the results
-    print('Number of pages scraped {}\n'.format(num_pages_scraped))
-    print('The following companies where sued:\n {}'.format(
-          [x.split("\n")[0] for x in df_companies_sued['defendant_name']]))
+    # Generate Dataframe & Write to Excel
+    elif report_output == 'dataframe_w_results':
+        df_companies_sued = get_df_data_companies_sued(mydb, Beginning_page)
+        write_to_excel(df_companies_sued, 'SCA_Scraper_Results.ods', 
+                       '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output')
+        return df_companies_sued
 
-    
+    # Generate Text File for Body of Email
+    '''Create a text file that includes the company name, file date and summary'''
+    elif report_output == 'email_text_body':
+        # Generate Dataframe
+        df_companies_sued = get_df_data_companies_sued(mydb, Beginning_page)
+        # Create Text File
+        filename = 'Email_body.txt'
+        target_dir = '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output/'
+        Email_body = open('Email_body.txt', 'w')
+        # Create Subject Line & Title
+        Email_body.write('INTELLISURE SECURITIES CLASS ACTION REPORT')
+        Email_body.write('Date => {} \n\n'.format(datetime.today()))
+        
+        # Add Content For Each Company Sued
+        for row in df_companies_sued.itertuples():
+            # Identify Values
+            defendant_name = row[1]
+            date_filed = row[3]
+            case_summary = row[5]
+            # Write to File
+            Email_body.write('Defendant Name => {}'.format(defendant_name))
+            Email_body.write('Date Filed     => {}\n\n'.format(date_filed))
+            Email_body.write('Case Summary: \n', case_summary)
+        Email_body.close()
+        
+        # Return Path + Filename
+        return  target_dir + filename   
 
-def send_email(from_address, to_address, timeout_sec, password, message):
+    # END DRIVER FUNCTION__________________________________________________________________
+
+
+
+def email_no_attachment(from_address, to_address, timeout_sec, password, message):
     '''Should probably add each of these objects as inputs'''
 
     # Objects:
     gmail_server = 'smtp.gmail.com'
     port         = 465
-    message      = 'Test message from python script'
-
+    message = 'Subject: Test subject line'
     # Create Secure Connection to Gmail Server
     server = smtplib.SMTP_SSL(gmail_server, port ,timeout = timeout_sec)
     print('Connection Created to Gmail Server \n')
     server.login(from_address, password)
-    print('Log-on successful to gmail address {}'.format(from_address)
+    print('Log-on successful to gmail address {}'.format(from_address))
     server.sendmail(
         from_address,
         to_address,                  
         message)
+    print('Email successfully sent') 
     server.quit()
  
 
 
+def email_with_attachments(password, toaddr, subject, body, filename, filepath):
+
+    # Define To & From Addresses
+    fromaddr = 'intellisurance@gmail.com'
+
+    # Create Instance Message Object
+    msg = MIMEMultipart()
+
+    # Define Attributes
+    msg['From'] = fromaddr
+    msg['To'] = toaddr
+    msg['Subject'] = 'Subject of Mail'
+    body = 'Your Message Here'
+    msg.attach(MIMEText(body, 'plain')) # what does this do?
+
+    # File Specification & Encoding 
+    filename = '/home/ccirelli2/Desktop/Programming/Send_emails_txt_messages/Test.ods'
+    attachment = open(filename, 'rb')
+    part = MIMEBase('application', 'octet-stream')
+    part.set_payload((attachment).read())
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition', 'attachment; filename = {}'.format(filename))
+    msg.attach(part)
+
+    # Login to Server & Send Message
+    server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout = 5)
+    server.login('intellisurance@gmail.com', password)
+    text = msg.as_string()              # I guess we are converting the entire message to str
+    server.sendmail(fromaddr, toaddr, text)
+    server.quit()
+
+    return print('Email Sent')
 
 
 
