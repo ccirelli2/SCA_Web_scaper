@@ -186,7 +186,7 @@ def SCA_data_scraper(Url, add_pages, Run_type, report_output_type, password):
         # Generate Report (Email or Print)-----------------------------------------
         
         # Otherwise print results
-        if report_output_type == 'print_results'
+        if report_output_type == 'print_results':
             m0.driver_function_post_run_scraper_report(mydb, Beginning_page,
                 End_page, 'print_results')
 
@@ -195,30 +195,28 @@ def SCA_data_scraper(Url, add_pages, Run_type, report_output_type, password):
             report_gen_time = str(datetime.now())
             
             # DataFrame w/ Results
-            df_results = m0.driver_function_post_run_scraper_status_report(mydb, Beginning_page, 
+            df_results = m0.driver_function_post_run_scraper_report(mydb, Beginning_page, 
                                                                  End_page, 'dataframe_w_results')
+            # Filename + Path for DataFrame as Excel File
+            Excel_file = m0.driver_function_post_run_scraper_report(mydb, Beginning_page, 
+                                                        End_page, 'dataframe_filename_plus_path')
+
             # Number Of Companies Added to Table
             num_companies_added = len(df_results['defendant_name'])
             
             # Generate Text File - Body of Email
             '''function returns str of filename + path'''
-            email_body_filename = m0.driver_function_post_run_scraper_status_report(mydb, Beginning_page, 
+            email_body_filename = m0.driver_function_post_run_scraper_report(mydb, Beginning_page, 
                                                                  End_page, 'email_text_body')
             
             # Generate Email
-            m0.send_email(
-                    from_address = 'intellisurance@gmail.com', 
-                    to_address   = 'intellisurance@gmail.com', 
-                    timeout_sec  = 5, 
-                    password     = password, 
-                    message      = '''
-                    From: Chris Cirelli <intellisurance@gmail.com>
-                    To: Chris Cirelli <intellisurance@gmail.com>
-                    Subject:  Securities Class Action Scraper Report
-                    Time           =>  {}
-                    New cases      =>  {}
-                    Companies sued =>  {}'''.format(
-                        report_gen_time, num_pages_scraped, str_companies_added))
+            m0.email_with_attachments(
+                    password            = password,   # input for top lvl scraper function 
+                    toaddr              = 'chris.cirelli@starrcompanies.com', 
+                    subject             = 'Intellisurance Securities Class Action Scraper Update',
+                    body                = open(email_body_filename).read(),
+                    attachment_filename = Excel_file
+                                    )
          
 
     # Function Returns Nothing
@@ -234,9 +232,9 @@ def SCA_data_scraper(Url, add_pages, Run_type, report_output_type, password):
 # RUN SCRAPER FUNCTION_____________________________________________________________________
 
 
-SCA_data_scraper(Url, add_pages = 20, Run_type = 'Start_from_last_page', email_report = True, 
-                'password')
-
+SCA_data_scraper(Url, add_pages = 20, Run_type = 'Start_from_last_page', 
+                report_output_type = 'generate_email', 
+                password = '************')
 
 
 

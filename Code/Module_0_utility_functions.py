@@ -26,14 +26,23 @@ from email import encoders
 
 # OUTPUT FUNCTIONS____________________________________________________________________
 
-def write_to_excel(dataframe, filename, target_dir):
+def write_to_excel(dataframe, filename, target_dir, add_datetime):
     '''Inputs:  dataframe, filename, target_dir'''
     os.chdir(target_dir)
-    filename = filename + '_' + str(datetime.today())
+
+    # Add datetime to filename or not
+    if add_datetime == True:
+        filename = filename + '_' + str(datetime.today())
+    else:
+        filename = filename
+
     writer = pd.ExcelWriter(filename+'.xlsx')
     dataframe.to_excel(writer, 'Data')
     print('Dataframe {} has been written to {}'.format(filename, target_dir))
     writer.save()
+
+
+
 
 # REPORT FUNCTIONS___________________________________________________________________
 
@@ -47,7 +56,7 @@ def progress_recorder(Count_obj, range_value_obj):
         page of the web page minus the first, so the total number of pages to scrape.       
     '''
     if Count_obj == 1:
-        print('Scraper started')
+        print('Scraping started')
     elif Count_obj == round(range_value_obj * 0.01, 0):
         print('1% Complete')
     elif Count_obj == round(range_value_obj * 0.05, 0):
@@ -78,7 +87,7 @@ def progress_recorder(Count_obj, range_value_obj):
         print('90% Completed')
     elif Count_obj == round(range_value_obj * 1.0,0):
         print('RRRRRR!!!!!!.......Scraping 100% Complete!!')
-        print('Ok to proceed to the next job!')
+        print('Ok to proceed to the next job!\n')
     return None
 
  
@@ -155,38 +164,64 @@ def driver_function_post_run_scraper_report(mydb, Beginning_page, End_page, repo
     # Generate Dataframe & Write to Excel
     elif report_output == 'dataframe_w_results':
         df_companies_sued = get_df_data_companies_sued(mydb, Beginning_page)
-        write_to_excel(df_companies_sued, 'SCA_Scraper_Results.ods', 
-                       '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output')
+        write_to_excel(df_companies_sued, 'SCA_Scraper_Results', 
+                       '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output', 
+                       add_datetime = False)
         return df_companies_sued
+    
+    # Return Dataframe Filename + Path
+    elif report_output == 'dataframe_filename_plus_path':
+        return '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output/SCA_Scraper_Results.xlsx'
 
     # Generate Text File for Body of Email
-    '''Create a text file that includes the company name, file date and summary'''
+    
     elif report_output == 'email_text_body':
+        # Source Url
+        source_url = 'http://securities.stanford.edu/'
         # Generate Dataframe
         df_companies_sued = get_df_data_companies_sued(mydb, Beginning_page)
+        num_companies_sued = len(df_companies_sued['defendant_name'])
         # Create Text File
         filename = 'Email_body.txt'
         target_dir = '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output/'
         Email_body = open('Email_body.txt', 'w')
         # Create Subject Line & Title
-        Email_body.write('INTELLISURE SECURITIES CLASS ACTION REPORT')
-        Email_body.write('Date => {} \n\n'.format(datetime.today()))
+        Email_body.write('Intellisurance Securities Class Action Scraper Report \r')
+        Email_body.write('Report Date                   => {} \r'.format(datetime.today()))
+        Email_body.write('Number of Companies In Report => {} \r'.format(num_companies_sued))
+        Email_body.write('Source                        => {} \n\n'.format(source_url))      
         
         # Add Content For Each Company Sued
         for row in df_companies_sued.itertuples():
             # Identify Values
-            defendant_name = row[1]
-            date_filed = row[3]
-            case_summary = row[5]
+            defendant_name  = str(row[2])
+            link            = str(row[1])
+            date_filed      = str(row[5])
+            case_summary    = str(row[6])
             # Write to File
             Email_body.write('Defendant Name => {}'.format(defendant_name))
-            Email_body.write('Date Filed     => {}\n\n'.format(date_filed))
-            Email_body.write('Case Summary: \n', case_summary)
-        Email_body.close()
+            Email_body.write('Date Filed     => {}\r'.format(date_filed))
+            Email_body.write('Link to case   => {}\r'.format(link))
+            Email_body.write('Case Summary:  => {}\r'.format(case_summary))
+            Email_body.write('_________________________________________________________\n\n')
         
+        # Add Copyright Disclosure At the End
+        Copyright_disclosure ='''\r
+        \n\n\n------------------------------------------------------------------------------
+        Please be advised that the content of this report is sources from the Stanford Law
+        Securities Class Action Web Page and is for academic purposes only.  In now way does
+        the author warrant the accuracy of the information presented, its validity nor is the 
+        author responsible for its use by recipients of this report. 
+        ------------------------------------------------------------------------------------
+        '''
+        Email_body.write(Copyright_disclosure)
+
+        # Close Email Body
+        Email_body.close()
+
         # Return Path + Filename
         return  target_dir + filename   
-
+    
     # END DRIVER FUNCTION__________________________________________________________________
 
 
@@ -212,7 +247,7 @@ def email_no_attachment(from_address, to_address, timeout_sec, password, message
  
 
 
-def email_with_attachments(password, toaddr, subject, body, filename, filepath):
+def email_with_attachments(password, toaddr, subject, body, attachment_filename):
 
     # Define To & From Addresses
     fromaddr = 'intellisurance@gmail.com'
@@ -223,17 +258,15 @@ def email_with_attachments(password, toaddr, subject, body, filename, filepath):
     # Define Attributes
     msg['From'] = fromaddr
     msg['To'] = toaddr
-    msg['Subject'] = 'Subject of Mail'
-    body = 'Your Message Here'
+    msg['Subject'] = subject
     msg.attach(MIMEText(body, 'plain')) # what does this do?
 
     # File Specification & Encoding 
-    filename = '/home/ccirelli2/Desktop/Programming/Send_emails_txt_messages/Test.ods'
-    attachment = open(filename, 'rb')
+    attachment = open(attachment_filename, 'rb')
     part = MIMEBase('application', 'octet-stream')
     part.set_payload((attachment).read())
     encoders.encode_base64(part)
-    part.add_header('Content-Disposition', 'attachment; filename = {}'.format(filename))
+    part.add_header('Content-Disposition', 'attachment; filename = {}'.format(attachment_filename))
     msg.attach(part)
 
     # Login to Server & Send Message
@@ -243,7 +276,7 @@ def email_with_attachments(password, toaddr, subject, body, filename, filepath):
     server.sendmail(fromaddr, toaddr, text)
     server.quit()
 
-    return print('Email Sent')
+    return print('\nEmail Successfully Sent to:  {}'.format(toaddr))
 
 
 
