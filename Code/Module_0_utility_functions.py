@@ -151,6 +151,9 @@ def driver_function_post_run_scraper_report(mydb, Beginning_page, End_page, repo
                 5.) Similar cases (tbd)
     '''
     
+    # Define Target Dir 
+    target_output_dir = '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Output' 
+
 
     # Print Results to Standard Output
     if report_output == 'print_results':
@@ -164,14 +167,13 @@ def driver_function_post_run_scraper_report(mydb, Beginning_page, End_page, repo
     # Generate Dataframe & Write to Excel
     elif report_output == 'dataframe_w_results':
         df_companies_sued = get_df_data_companies_sued(mydb, Beginning_page)
-        write_to_excel(df_companies_sued, 'SCA_Scraper_Results', 
-                       '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output', 
+        write_to_excel(df_companies_sued, 'SCA_Scraper_Results', target_output_dir, 
                        add_datetime = False)
         return df_companies_sued
     
     # Return Dataframe Filename + Path
     elif report_output == 'dataframe_filename_plus_path':
-        return '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output/SCA_Scraper_Results.xlsx'
+        return target_output_dir + '/SCA_Scraper_Results.xlsx'
 
     # Generate Text File for Body of Email
     
@@ -183,7 +185,6 @@ def driver_function_post_run_scraper_report(mydb, Beginning_page, End_page, repo
         num_companies_sued = len(df_companies_sued['defendant_name'])
         # Create Text File
         filename = 'Email_body.txt'
-        target_dir = '/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output/'
         Email_body = open('Email_body.txt', 'w')
         # Create Subject Line & Title
         Email_body.write('Intellisurance Securities Class Action Scraper Report \r')
@@ -220,7 +221,7 @@ def driver_function_post_run_scraper_report(mydb, Beginning_page, End_page, repo
         Email_body.close()
 
         # Return Path + Filename
-        return  target_dir + filename   
+        return  target_output_dir + '/' + filename   
     
     # END DRIVER FUNCTION__________________________________________________________________
 

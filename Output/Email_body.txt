@@ -1,0 +1,13 @@
+Intellisurance Securities Class Action Scraper Report Report Date                   => 2019-01-02 15:00:12.322669 Number of Companies In Report => 0 Source                        => http://securities.stanford.edu/ 
+
+
+        
+
+
+------------------------------------------------------------------------------
+        Please be advised that the content of this report is sources from the Stanford Law
+        Securities Class Action Web Page and is for academic purposes only.  In now way does
+        the author warrant the accuracy of the information presented, its validity nor is the 
+        author responsible for its use by recipients of this report. 
+        ------------------------------------------------------------------------------------
+        

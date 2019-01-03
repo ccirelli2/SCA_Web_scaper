@@ -1,0 +1,21 @@
+python: can't open file '3': [Errno 2] No such file or directory
+Traceback (most recent call last):
+  File "/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Code/Script_1_ScraperDriverFunction_v2.py", line 31, in <module>
+    from bs4 import BeautifulSoup
+ModuleNotFoundError: No module named 'bs4'
+Traceback (most recent call last):
+  File "/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Code/Script_1_ScraperDriverFunction_v2.py", line 31, in <module>
+    from bs4 import BeautifulSoup
+ModuleNotFoundError: No module named 'bs4'
+Traceback (most recent call last):
+  File "/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Code/Script_1_ScraperDriverFunction_v2.py", line 31, in <module>
+    from bs4 import BeautifulSoup
+ModuleNotFoundError: No module named 'bs4'
+Traceback (most recent call last):
+  File "/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Code/Script_1_ScraperDriverFunction_v2.py", line 31, in <module>
+    from bs4 import BeautifulSoup
+ModuleNotFoundError: No module named 'bs4'
+Traceback (most recent call last):
+  File "/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Code/Script_1_ScraperDriverFunction_v2.py", line 31, in <module>
+    from bs4 import BeautifulSoup
+ModuleNotFoundError: No module named 'bs4'

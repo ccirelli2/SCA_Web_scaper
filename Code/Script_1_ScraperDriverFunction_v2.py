@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 
@@ -234,7 +234,9 @@ def SCA_data_scraper(Url, add_pages, Run_type, report_output_type, password):
 
 SCA_data_scraper(Url, add_pages = 20, Run_type = 'Start_from_last_page', 
                 report_output_type = 'generate_email', 
-                password = '************')
+                password = 'Work4starr')
+
+
 
 
 
