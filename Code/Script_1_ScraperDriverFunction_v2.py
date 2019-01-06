@@ -39,7 +39,7 @@ from nltk import corpus
 import nltk
 from datetime import datetime
 import mysql.connector
-
+import logging
 
 ### IMPORT MODULES_____________________________________________________________
 import Module_0_utility_functions as m0
@@ -232,9 +232,19 @@ def SCA_data_scraper(Url, add_pages, Run_type, report_output_type, password):
 # RUN SCRAPER FUNCTION_____________________________________________________________________
 
 
-SCA_data_scraper(Url, add_pages = 20, Run_type = 'Start_from_last_page', 
+Scraper_function = SCA_data_scraper(Url, add_pages = 20, Run_type = 'Start_from_last_page', 
                 report_output_type = 'generate_email', 
                 password = 'Work4starr')
+
+
+# Logging
+print('\n Generating loggin file')
+logging.basicConfig(
+        filename = r'/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/logging/log.txt', 
+        level=logging.DEBUG,
+        format='%(asctime)s:%(levelname)s:%(message)s')
+print('Log files saved to {}').format('/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/logging/log.txt')
+logging.debug(Scraper_function)
 
 
 

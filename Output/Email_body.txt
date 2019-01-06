@@ -1,4 +1,4 @@
-Intellisurance Securities Class Action Scraper Report Report Date                   => 2019-01-02 15:00:12.322669 Number of Companies In Report => 0 Source                        => http://securities.stanford.edu/ 
+Intellisurance Securities Class Action Scraper Report Report Date                   => 2019-01-05 09:54:19.135896 Number of Companies In Report => 0 Source                        => http://securities.stanford.edu/ 
 
 
         
