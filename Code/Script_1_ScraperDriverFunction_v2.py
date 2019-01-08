@@ -66,11 +66,10 @@ def SCA_data_scraper(Url, add_pages, Run_type, report_output_type, password):
                     selection (need to sync up with driver function for gen reports.
     password        email account password (omitt from base script)
     '''
-    # Table Object
-    table = 'SCA_data'
+    #table = 'SCA_data'
+    table = 'SCA_DATA3_TEST'
 
-    # SCRAPER______________________________________________________________________________________
-
+    breakpoint()
     # RUN-TYPE - RESET
     if Run_type == 'Reset':
         # Reset count values
@@ -189,7 +188,7 @@ def SCA_data_scraper(Url, add_pages, Run_type, report_output_type, password):
                 attachment_filename=Excel_file
             )
 
-SCA_data_scraper(URL, add_pages=20, Run_type='Start_from_last_page', report_output_type='generate_email', password='Work4starr')
+SCA_data_scraper(URL, add_pages=20, Run_type=config['runType'], report_output_type='generate_email', password='Work4starr')
 
 # Logging
 print('\n Generating loggin file')
