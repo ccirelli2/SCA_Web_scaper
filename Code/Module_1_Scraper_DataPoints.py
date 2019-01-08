@@ -232,17 +232,7 @@ def get_titles_referenced_complaint_docs(Obj):
     print(len(Entries))
     # Table for later
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def progress_recorder(a, b):
+    '''
+        ???
+    '''
