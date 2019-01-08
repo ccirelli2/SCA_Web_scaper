@@ -1,7 +1,7 @@
 ### PURPOSE
 '''
 The purpose of this script is to show examples of how the SQL connector
-works, how to create tables, input information, etc. 
+works, how to create tables, input information, etc.
 
 web_page = www.w3school.com/python/python_mysql_create_table.asp
 
@@ -9,45 +9,24 @@ Syntax:
     mycursor = mydb.cursor()                creates a connection to the db
     mycursor.execute('SQL COMMAND')         executes commands to the db
 
-'''
-
-
-### IMPORT CONNECTOR 
-import mysql.connector
-
-# Instantiate Connector
-'''
 Once the database is defiend you would use the following syntax
 cnx = mysql.connector.connect(user='joe', database='test_database')
 '''
+import json
+import os
+import mysql.connector
 
+
+with open('./config.json', 'r') as f:
+    config = json.load(f)
 mydb = mysql.connector.connect(
-        host="localhost", 
-        user="ccirelli2", 
-        passwd="", 
-        database='SCA_SCRAPER'
-        )
-
-#print(mydb)
-
-### CREATE DATABASE
-'''
-mycursor = mydb.cursor()
-mycursor.execute('CREATE DATABASE test_database_09242018')
-'''
-
-### LIST AVAILABLE DATABASES
-'''
-mycursor = mydb.cursor()
-mycursor.execute('SHOW DATABASES')
-print(type(mycursor), '/n')
-print([x for x in mycursor])
-'''
-
-### CREATE TABLE
+    host=config['database']['host'],
+    user=config['database']['user'],
+    passwd=os.environ['MYSQL_PASSWORD'],
+    database=config['database']['database'])
 
 mycursor = mydb.cursor()
-mycursor.execute('''CREATE TABLE SCA_data( 
+mycursor.execute('''CREATE TABLE SCA_data(
                     page_number                 SMALLINT        NOT NULL    UNIQUE,
                     defendant_address           VARCHAR(225),
                     defendant_name              VARCHAR(255), 
@@ -99,71 +78,3 @@ mycursor.execute('''CREATE TABLE SCA_data(
                                             )''')
 mycursor.execute('SHOW TABLES')
 print([x for x in mycursor])
-
-
-### DROP TABLE
-'''
-mycursor = mydb.cursor()
-mycursor.execute('DROP TABLE customers')
-'''
-
-
-### INSERT INTO TABLE
-'''
-mycursor = mydb.cursor()
-sql_command = 'INSERT INTO customers (name, address) VALUES(%s,%s)'
-val = [
-       ('Chris', '1175 Lea Drive'), 
-       ('Nubia', '1175 Lea Drive')]
-
-mycursor.executemany(sql_command, val)
-mydb.commit()
-'''
-
-### SELECT FROM A TABLE
-'''
-mycursor = mydb.cursor()
-mycursor.execute('SELECT * FROM customers')
-myresult= mycursor.fetchall()
-print(myresult)
-'''
-
-### INSERTION WITHIN A FOR LOOP
-'''
-mycursor = mydb.cursor()
-List_values = [x for x in range(0,10)]
-for x in List_values:
-    if x > 2:
-        sql_command = 'INSERT INTO customers (name) VALUES(%s)'
-        val = ['Chris_' + str(x)]
-        mycursor.execute(sql_command, val)
-        mydb.commit()
-'''
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

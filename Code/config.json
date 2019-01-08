@@ -1,0 +1,11 @@
+{
+    "database": {
+        "host": "localhost",
+        "port": 3306,
+        "user": "ccirelli2",
+        "database": "SCA_SCRAPER"
+    },
+    "target_output_dir": "/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/Scraper_output",
+    "webPageObjects": "http://securities.stanford.edu/filings-case.html?id=",
+    "logFile": "/home/ccirelli2/Desktop/Programming/SCA_Web_scaper/logging/log.txt"
+}
