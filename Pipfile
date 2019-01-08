@@ -13,6 +13,7 @@ nltk = "*"
 numpy = "*"
 pandas = "*"
 pylint = "*"
+pudb = "*"
 
 [requires]
 python_version = "3.7"
