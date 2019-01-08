@@ -69,7 +69,6 @@ def SCA_data_scraper(Url, add_pages, Run_type, report_output_type, password):
     #table = 'SCA_data'
     table = 'SCA_DATA3_TEST'
 
-    breakpoint()
     # RUN-TYPE - RESET
     if Run_type == 'Reset':
         # Reset count values
