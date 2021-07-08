@@ -1,0 +1,20 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+bs4 = "*"
+flake8 = "*"
+mysql-connector-python = "*"
+nltk = "*"
+numpy = "*"
+pandas = "*"
+pylint = "*"
+pudb = "*"
+lxml = "*"
+
+[requires]
+python_version = "3.7"
